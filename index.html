@@ -233,6 +233,34 @@
   .toast{position:fixed;left:50%;bottom:98px;transform:translate(-50%,30px);z-index:90;background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:30px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 12px 24px -8px rgba(26,23,20,.5);display:flex;align-items:center;gap:8px;max-width:88vw;}
   .toast.show{opacity:1;transform:translate(-50%,0);}
 
+  /* import */
+  .bigimport{width:100%;margin-top:11px;border-radius:var(--r-sm);padding:15px 14px;font-weight:700;font-size:15px;display:flex;align-items:center;gap:10px;justify-content:center;background:var(--ink);color:var(--paper);box-shadow:0 3px 0 #000;border:1.5px solid transparent;transition:transform .12s;}
+  .bigimport:active{transform:translateY(2px) scale(.99);}
+  .bigimport .ic{font-size:18px;}
+  .howto{background:var(--paper-2);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:13px 14px;margin-bottom:12px;font-size:13px;line-height:1.6;color:#3a342c;}
+  .howto b{color:var(--ink);}
+  .howto ol{margin:6px 0 0;padding-left:20px;}
+  .howto li{margin-bottom:4px;}
+  .copyp{width:100%;padding:13px;border-radius:12px;background:var(--tijolo);color:#fff;font-weight:700;font-size:14.5px;box-shadow:0 3px 0 var(--tijolo-dark);transition:transform .1s;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .copyp:active{transform:translateY(2px);}
+  .codearea{width:100%;min-height:118px;padding:13px 14px;border:1.5px solid var(--line-strong);border-radius:12px;background:var(--paper-2);color:var(--ink);font-family:var(--mono);font-size:12.5px;line-height:1.5;resize:vertical;}
+  .previewbox{margin-top:12px;}
+  .psum{display:flex;gap:9px;margin-bottom:11px;}
+  .psum .pc{flex:1;background:var(--paper-2);border:1.5px solid var(--line);border-radius:11px;padding:10px 6px;text-align:center;}
+  .psum .pc .pn{font-family:var(--mono);font-weight:700;font-size:16px;}
+  .psum .pc .pl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-top:2px;}
+  .psum .pc.out .pn{color:var(--tijolo);} .psum .pc.in .pn{color:var(--verde);}
+  .pvitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;margin-bottom:7px;background:var(--paper-2);}
+  .pvitem .em{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:15px;background:var(--paper);border:1.5px solid var(--line);flex:0 0 auto;}
+  .pvitem .pm{flex:1;min-width:0;}
+  .pvitem .pm .a{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pvitem .pm .b{font-size:11px;color:var(--ink-soft);}
+  .pvitem .pv{font-family:var(--mono);font-weight:700;font-size:13px;white-space:nowrap;}
+  .pvitem .pv.out{color:var(--tijolo);} .pvitem .pv.in{color:var(--verde);}
+  .pvitem.dup{opacity:.45;}
+  .warnbox{background:rgba(224,162,26,.12);border:1.5px solid rgba(224,162,26,.4);border-radius:11px;padding:11px 13px;margin-top:10px;font-size:12px;line-height:1.5;color:var(--ouro-dark);}
+  .warnbox b{display:block;margin-bottom:3px;}
+
   @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.05ms!important;}}
   @media (min-width:560px){.app{border-left:1.5px solid var(--line);border-right:1.5px solid var(--line);}}
 </style>
@@ -269,6 +297,7 @@
       <button class="g" onclick="openSheet('gasto')"><span class="ic">−</span> Lançar gasto</button>
       <button class="p" onclick="openSheet('plantao')"><span class="ic">+</span> Lançar plantão</button>
     </div>
+    <button class="bigimport" onclick="openImport()"><span class="ic">📥</span> Importar extrato do banco</button>
 
     <div class="stats">
       <div class="stat a"><div class="l">Já saiu</div><div class="v" id="stReal">R$ 0</div></div>
@@ -418,6 +447,26 @@
   <div class="setrow"><div class="si"><b>Restaurar backup</b><span>Carrega um .json salvo antes.</span></div><button class="setbtn" onclick="document.getElementById('importFile').click()">Carregar</button></div>
   <div class="setrow"><div class="si"><b>Apagar tudo</b><span>Zera o app. Não tem volta.</span></div><button class="setbtn danger" onclick="wipe()">Apagar</button></div>
   <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importData(event)">
+</div>
+
+<!-- IMPORTAR -->
+<div class="scrim" id="scrim3" onclick="closeImport()"></div>
+<div class="sheet" id="sheet3" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div class="shead"><h3>Importar do banco</h3><button class="closeb" onclick="closeImport()">Fechar ✕</button></div>
+  <div class="howto">
+    <b>Print do banco vira lançamento — sem digitar:</b>
+    <ol>
+      <li>Toca em <b>Copiar prompt</b> e cola no chat do Claude junto com o <b>print do teu extrato</b>.</li>
+      <li>O Claude lê e devolve um <b>código</b>. Cola ele no campo abaixo.</li>
+      <li>Confere a prévia e toca em <b>Importar</b>. Pronto.</li>
+    </ol>
+  </div>
+  <button class="copyp" onclick="copyPrompt()">📋 Copiar prompt do Claude</button>
+  <label style="font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);font-weight:600;display:block;margin-bottom:6px;">Cola o código aqui</label>
+  <textarea class="codearea" id="codeInput" placeholder="#SOB1&#10;G|2026-06-21|comida|45.90|Padaria&#10;P|2026-06-20|3500.00|UPA Santa Marta|recebido" oninput="analisarCodigo()"></textarea>
+  <div class="previewbox" id="previewBox"></div>
+  <div class="savebar"><button class="savebtn ink" id="importBtn" onclick="confirmImport()" disabled>Importar</button></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -800,6 +849,99 @@ function importData(e){const f=e.target.files[0];if(!f)return;const rd=new FileR
 function wipe(){if(!confirm('Isso apaga TODOS os teus lançamentos deste aparelho. Sem volta. Continuar?'))return;S={gastos:[],plantoes:[],fixos:[],parcelas:[],pagos:{},config:{salario:0},v:2};persist();render();refreshSal();closeAjustes();toast('Tudo zerado');}
 
 let toastT;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2300);}
+
+/* ================= IMPORTAR DO BANCO ================= */
+const SOB_PROMPT=`Você é meu assistente financeiro pessoal. Vou te enviar um print (captura de tela) do extrato do meu banco. Leia a imagem com atenção e extraia TODAS as transações visíveis.
+
+Para cada transação identifique: a data, o valor e se é SAÍDA (gasto) ou ENTRADA (recebimento). Classifique cada gasto na categoria mais provável a partir da descrição. Entradas que pareçam plantão, salário ou honorário médico, lance como plantão recebido.
+
+Categorias válidas (use exatamente estes códigos):
+comida, transp, casa, saude, estudo, lazer, assina, cartao, reserva, outros
+
+Responda APENAS com o código no formato abaixo, dentro de um bloco de código markdown (três crases), sem nenhum texto antes ou depois.
+
+#SOB1
+G|AAAA-MM-DD|categoria|valor|descrição curta
+P|AAAA-MM-DD|valor|origem|recebido
+
+Regras:
+- G = gasto (saída de dinheiro). P = plantão/entrada.
+- Valor com ponto decimal e duas casas, ex.: 45.90. Sem "R$" e sem separador de milhar.
+- Uma transação por linha. Não use o caractere barra-vertical dentro da descrição.
+- Se não tiver certeza da categoria, use "outros".
+- Use a data que aparece na transação. Se faltar o ano, use o ano atual.
+- Ignore saldo, limite, rendimento e qualquer linha que não seja transação.
+- Não invente nada: extraia só o que está na imagem.`;
+
+let parsed=null;
+function openImport(){document.getElementById('scrim3').classList.add('show');document.getElementById('sheet3').classList.add('show');document.body.style.overflow='hidden';document.getElementById('sheet3').scrollTop=0;}
+function closeImport(){document.getElementById('scrim3').classList.remove('show');document.getElementById('sheet3').classList.remove('show');document.body.style.overflow='';}
+
+function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);}
+function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).catch(()=>fallbackCopy(t));}else fallbackCopy(t);}
+function copyPrompt(){copyText(SOB_PROMPT);toast('📋 Prompt copiado! Cola no Claude com o print.');}
+
+function parseNum(s){if(s==null)return NaN;s=String(s).replace(/[^\d.,-]/g,'').trim();if(!s)return NaN;if(s.indexOf('.')>=0&&s.indexOf(',')>=0)s=s.replace(/\./g,'').replace(',','.');else if(s.indexOf(',')>=0)s=s.replace(',','.');return parseFloat(s);}
+function normDate(s){if(!s)return null;s=String(s).trim();let m;if(m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');if(m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/)){let y=m[3];if(y.length===2)y='20'+y;return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');}if(m=s.match(/^(\d{1,2})\/(\d{1,2})$/)){const y=new Date().getFullYear();return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');}return null;}
+function parseSOB(text){
+  const lines=text.split(/\r?\n/);const gastos=[],plantoes=[],warns=[];
+  for(const raw of lines){
+    const line=raw.trim();
+    if(!line||line.startsWith('```')||line.startsWith('#'))continue;
+    const parts=line.split('|').map(s=>s.trim());
+    const t=(parts[0]||'').toUpperCase();
+    if(t==='G'){
+      const data=normDate(parts[1]);const catRaw=(parts[2]||'').toLowerCase();const valor=parseNum(parts[3]);const nota=parts.slice(4).join(' ').trim();
+      if(!data||!(valor>0)){warns.push('Pulei (gasto inválido): '+line);continue;}
+      const categoria=CATS.some(c=>c.id===catRaw)?catRaw:'outros';
+      if(categoria!==catRaw&&catRaw)warns.push('Categoria "'+catRaw+'" não existe → joguei em Outros'+(nota?' ('+nota+')':''));
+      gastos.push({data,categoria,valor,nota});
+    }else if(t==='P'){
+      const data=normDate(parts[1]);const valor=parseNum(parts[2]);const local=(parts[3]||'').trim();const st=(parts[4]||'recebido').toLowerCase();
+      if(!data||!(valor>0)){warns.push('Pulei (plantão inválido): '+line);continue;}
+      const status=(st.indexOf('pend')>=0||st.indexOf('receber')>=0)?'pendente':'recebido';
+      plantoes.push({data,valor,local,status});
+    }else{warns.push('Linha não reconhecida: '+line);}
+  }
+  return {gastos,plantoes,warns};
+}
+function isDupGasto(g){return S.gastos.some(x=>x.data===g.data&&Math.abs(x.valor-g.valor)<0.005&&(x.nota||'').toLowerCase().trim()===(g.nota||'').toLowerCase().trim());}
+function isDupPlant(p){return S.plantoes.some(x=>x.data===p.data&&Math.abs(x.valor-p.valor)<0.005&&(x.local||'').toLowerCase().trim()===(p.local||'').toLowerCase().trim());}
+
+function analisarCodigo(){
+  const txt=document.getElementById('codeInput').value;const box=document.getElementById('previewBox');const btn=document.getElementById('importBtn');
+  if(!txt.trim()){box.innerHTML='';parsed=null;btn.disabled=true;btn.textContent='Importar';return;}
+  const r=parseSOB(txt);
+  r.gastos.forEach(g=>g._dup=isDupGasto(g));
+  r.plantoes.forEach(p=>p._dup=isDupPlant(p));
+  parsed=r;
+  const newG=r.gastos.filter(g=>!g._dup),newP=r.plantoes.filter(p=>!p._dup);
+  const totG=newG.reduce((a,g)=>a+g.valor,0),totP=newP.reduce((a,p)=>a+p.valor,0);
+  const dupCount=(r.gastos.length-newG.length)+(r.plantoes.length-newP.length);
+  if(!r.gastos.length&&!r.plantoes.length){box.innerHTML='<div class="warnbox"><b>Não achei lançamentos válidos.</b>Confere se colou o código que o Claude gerou — ele começa com #SOB1.</div>';btn.disabled=true;btn.textContent='Importar';return;}
+  let html='<div class="psum">';
+  html+='<div class="pc out"><div class="pn">'+newG.length+'</div><div class="pl">gastos</div></div>';
+  html+='<div class="pc in"><div class="pn">'+newP.length+'</div><div class="pl">entradas</div></div>';
+  html+='<div class="pc"><div class="pn">'+fmtShort(totP-totG)+'</div><div class="pl">líquido</div></div></div>';
+  r.gastos.forEach(g=>{const c=cat(g.categoria);html+='<div class="pvitem '+(g._dup?'dup':'')+'"><span class="em">'+c.em+'</span><span class="pm"><span class="a">'+(g.nota?esc(g.nota):c.nome)+'</span><span class="b">'+c.nome+' · '+dayLabel(g.data)+(g._dup?' · já existe':'')+'</span></span><span class="pv out">−'+fmt(g.valor)+'</span></div>';});
+  r.plantoes.forEach(p=>{html+='<div class="pvitem '+(p._dup?'dup':'')+'"><span class="em">🩺</span><span class="pm"><span class="a">'+(p.local?esc(p.local):'Plantão')+'</span><span class="b">'+dayLabel(p.data)+' · '+p.status+(p._dup?' · já existe':'')+'</span></span><span class="pv in">+'+fmt(p.valor)+'</span></div>';});
+  if(dupCount>0)html+='<div class="warnbox"><b>'+dupCount+' já existe(m) e foram ignorados.</b>Pra não duplicar, esses não entram de novo.</div>';
+  if(r.warns.length)html+='<div class="warnbox"><b>Avisos</b>'+r.warns.slice(0,6).map(esc).join('<br>')+'</div>';
+  box.innerHTML=html;
+  const n=newG.length+newP.length;
+  btn.disabled=n===0;btn.textContent=n===0?'Nada novo pra importar':('Importar '+n+' lançamento'+(n===1?'':'s'));
+}
+function confirmImport(){
+  if(!parsed)return;
+  const newG=parsed.gastos.filter(g=>!g._dup),newP=parsed.plantoes.filter(p=>!p._dup);
+  let lastMonth=null;
+  newG.forEach(g=>{S.gastos.push({id:uid(),valor:g.valor,categoria:g.categoria,nota:g.nota,data:g.data,ts:Date.now().toString()});lastMonth=ym(g.data);});
+  newP.forEach(p=>{S.plantoes.push({id:uid(),valor:p.valor,local:p.local,status:p.status,data:p.data,ts:Date.now().toString()});lastMonth=ym(p.data);});
+  const n=newG.length+newP.length;if(n===0)return;
+  if(lastMonth)view.month=lastMonth;
+  document.getElementById('codeInput').value='';document.getElementById('previewBox').innerHTML='';parsed=null;document.getElementById('importBtn').disabled=true;document.getElementById('importBtn').textContent='Importar';
+  closeImport();render();toast('✅ '+n+' lançamento'+(n===1?'':'s')+' importado'+(n===1?'':'s')+'!');
+}
 
 /* ================= INIT ================= */
 renderLessons();
