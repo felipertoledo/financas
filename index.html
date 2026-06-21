@@ -300,6 +300,11 @@
    Gasto:  {d:'AAAA-MM-DD', cat:'categoria', val:00.00, desc:'...', parcela:{n:1,total:5}?, fixo:true?}
    Entrada:{d:'AAAA-MM-DD', val:00.00, src:'origem'}
    ============================================================ */
+const _el = id => document.getElementById(id);
+const meta_line=_el('meta-line'), sum_in=_el('sum-in'), sum_out=_el('sum-out'), sum_bal=_el('sum-bal'),
+      parc_count=_el('parc-count'), parc_paid=_el('parc-paid'), parc_future=_el('parc-future'), parc_total=_el('parc-total'),
+      fix_body=_el('fix-body'), fix_total=_el('fix-total'), tx_count=_el('tx-count'), tx_body=_el('tx-body');
+
 const TX = [
   {d:'2026-05-30',cat:'outros',val:3400.00,desc:'Ana Celia Ribeiro'},
   {d:'2026-05-31',cat:'outros',val:500.00,desc:'Dallem de Araujo Sartori'},
