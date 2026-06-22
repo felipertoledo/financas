@@ -544,6 +544,7 @@
   <div class="setrow"><div class="si"><b>Salário base do mês</b><span>Quanto você se "paga" de média. Vira a base da projeção quando não tem plantão lançado.</span></div><button class="setbtn" onclick="setSalario()" id="salBtn">Definir</button></div>
   <div class="setrow"><div class="si"><b>Baixar backup</b><span>Salva um .json com tudo.</span></div><button class="setbtn" onclick="exportData()">Baixar</button></div>
   <div class="setrow"><div class="si"><b>Restaurar backup</b><span>Carrega um .json salvo antes.</span></div><button class="setbtn" onclick="document.getElementById('importFile').click()">Carregar</button></div>
+  <div class="setrow"><div class="si"><b>Apagar duplicados</b><span>Acha lançamentos repetidos (mesma data, valor e descrição) e deixa só um de cada.</span></div><button class="setbtn" onclick="dedupe()">Limpar</button></div>
   <div class="setrow"><div class="si"><b>Apagar tudo</b><span>Zera o app. Não tem volta.</span></div><button class="setbtn danger" onclick="wipe()">Apagar</button></div>
   <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importData(event)">
 </div>
@@ -1038,6 +1039,20 @@ function setSalario(){const cur=S.config.salario||0;const r=prompt('Quanto você
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='soberania-backup-'+todayISO()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('💾 Backup baixado');}
 function importData(e){const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const dd=JSON.parse(rd.result);if(!dd.gastos&&!dd.plantoes&&!dd.fixos)throw 0;S={gastos:dd.gastos||[],plantoes:dd.plantoes||[],fixos:dd.fixos||[],parcelas:dd.parcelas||[],pagos:dd.pagos||{},config:Object.assign({salario:0},dd.config||{}),v:2};persist();render();refreshSal();toast('✓ Backup restaurado');}catch(err){toast('⚠️ Arquivo inválido');}};rd.readAsText(f);e.target.value='';}
 function wipe(){if(!confirm('Isso apaga TODOS os teus lançamentos deste aparelho. Sem volta. Continuar?'))return;S={gastos:[],plantoes:[],fixos:[],parcelas:[],pagos:{},config:{salario:0},v:2};persist();render();refreshSal();closeAjustes();toast('Tudo zerado');}
+function dedupe(){
+  const norm=s=>(s||'').toString().toLowerCase().trim();
+  const near=(a,b)=>Math.abs((a||0)-(b||0))<0.005;
+  const uniq=(arr,same)=>{const out=[];arr.forEach(it=>{if(!out.some(x=>same(x,it)))out.push(it);});return out;};
+  const ng=uniq(S.gastos,(a,b)=>a.data===b.data&&near(a.valor,b.valor)&&norm(a.nota)===norm(b.nota));
+  const np=uniq(S.plantoes,(a,b)=>a.data===b.data&&near(a.valor,b.valor)&&norm(a.local)===norm(b.local)&&a.status===b.status);
+  const npar=uniq(S.parcelas,(a,b)=>a.inicio===b.inicio&&near(a.valorParc,b.valorParc)&&a.n===b.n&&norm(a.desc)===norm(b.desc));
+  const nf=uniq(S.fixos,(a,b)=>a.desde===b.desde&&near(a.valor,b.valor)&&norm(a.nome)===norm(b.nome));
+  const removed=(S.gastos.length-ng.length)+(S.plantoes.length-np.length)+(S.parcelas.length-npar.length)+(S.fixos.length-nf.length);
+  if(removed===0){toast('Nenhum duplicado encontrado ✓');return;}
+  if(!confirm('Encontrei '+removed+' lançamento'+(removed===1?'':'s')+' duplicado'+(removed===1?'':'s')+'. Apagar e ficar com um de cada?'))return;
+  S.gastos=ng;S.plantoes=np;S.parcelas=npar;S.fixos=nf;
+  persist();render();refreshSal();closeAjustes();toast('🧹 '+removed+' duplicado'+(removed===1?'':'s')+' removido'+(removed===1?'':'s'));
+}
 
 let toastT;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2300);}
 
@@ -1058,14 +1073,17 @@ C|AAAA-MM|categoria|valor_da_parcela|num_parcelas|descrição
 F|AAAA-MM|categoria|valor_mensal|dia_vencimento|nome
 
 Regras:
-- G = gasto avulso (saída única). P = plantão/entrada.
-- C = compra parcelada. Use quando a transação mostrar "Parcela X de N". AAAA-MM é o mês da 1ª parcela (se a tela mostrar "Parcela 2 de 5", volte 1 mês; "3 de 5", volte 2; e assim por diante). valor_da_parcela é o valor de UMA parcela; num_parcelas é o total (o N). Lance a compra parcelada como UMA linha C, não como vários G.
-- F = gasto fixo mensal recorrente (aluguel, assinatura tipo Netflix/Spotify/YouTube, internet, mensalidade). AAAA-MM é o mês em que começa; dia_vencimento pode ser 0 se não souber.
-- Valor com ponto decimal e duas casas, ex.: 45.90. Sem "R$" e sem separador de milhar.
+- G = gasto avulso (saída única, à vista). P = plantão ou qualquer entrada.
+- C = COMPRA PARCELADA. Use SEMPRE que aparecer "Parcela X de N". Lance como UMA única linha C (nunca vários G) — o app projeta as parcelas seguintes sozinho.
+  - AAAA-MM = mês da 1ª parcela. Se a tela mostrar "Parcela 2 de N", volte 1 mês a partir da data exibida; "3 de N", volte 2; e assim por diante. Se aparecer a data original da compra, use o mês dela.
+  - valor_da_parcela = valor de UMA parcela. num_parcelas = o N (total).
+  - Se a MESMA compra parcelada aparecer em prints de meses diferentes ("1 de 3" num, "2 de 3" noutro), gere a linha C só UMA vez. Não repita.
+- F = gasto fixo recorrente (aluguel, internet, mensalidade, assinatura tipo Netflix/Spotify/YouTube/Prime). Uma linha por gasto, no mês em que começa. dia_vencimento = 0 se não souber. Só use F com certeza de que repete todo mês; na dúvida, use G.
+- Valor com ponto decimal e duas casas (ex.: 45.90). Sem "R$" e sem separador de milhar.
 - Uma transação por linha. Não use o caractere barra-vertical dentro da descrição.
-- Se não tiver certeza da categoria, use "outros".
+- Na dúvida da categoria, use "outros".
 - Use a data que aparece na transação. Se faltar o ano, use o ano atual.
-- Ignore saldo, limite, rendimento e qualquer linha que não seja transação.
+- Ignore saldo, limite, rendimento, "pagamento de fatura"/"pagamento efetuado" e qualquer linha que não seja transação.
 - Não invente nada: extraia só o que está na imagem.`;
 
 let parsed=null;
@@ -1263,45 +1281,4 @@ function mapErr(code){
 
 window.SOBLogin = async (mode)=>{
   if(!auth){ setErr('Sincronização indisponível agora. Confere tua internet.'); return; }
-  const email=(($('loginEmail')||{}).value||'').trim();
-  const pass=(($('loginPass')||{}).value||'');
-  if(!email){ setErr('Digite seu e-mail.'); return; }
-  if(pass.length<6){ setErr('A senha precisa de 6+ caracteres.'); return; }
-  setErr('');
-  const bE=$('btnEntrar'), bC=$('btnCriar'); if(bE)bE.disabled=true; if(bC)bC.disabled=true;
-  try {
-    if(mode==='criar') await createUserWithEmailAndPassword(auth,email,pass);
-    else await signInWithEmailAndPassword(auth,email,pass);
-    if($('loginPass')) $('loginPass').value='';
-  } catch(e){ setErr(mapErr(e.code||'')); }
-  finally { if(bE)bE.disabled=false; if(bC)bC.disabled=false; }
-};
-window.SOBLogout = async ()=>{
-  if(!auth) return;
-  if(!confirm('Sair vai parar a sincronização neste aparelho. Teus dados continuam salvos. Continuar?')) return;
-  try { await signOut(auth); } catch(e){}
-};
-
-if(auth){
-  setPersistence(auth, browserLocalPersistence).catch(()=>{});
-  onAuthStateChanged(auth, user=>{
-    if(user){
-      uid = user.uid;
-      setErr(''); showLogin(false);
-      const who=$('syncWho'); if(who) who.textContent=user.email||'conectado';
-      const row=$('signoutRow'); if(row) row.style.display='';
-      reconcile();
-    } else {
-      uid=null;
-      if(unsub){ unsub(); unsub=null; }
-      const row=$('signoutRow'); if(row) row.style.display='none';
-      showLogin(true);
-    }
-  });
-} else {
-  // Firebase não carregou (ex.: offline): app segue funcionando local, sem login travando.
-  showLogin(false);
-}
-</script>
-</body>
-</html>
+  const email=(($('loginEmail')||{}).value
