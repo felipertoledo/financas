@@ -263,6 +263,23 @@
   .howto b{color:var(--ink);}
   .howto ol{margin:6px 0 0;padding-left:20px;}
   .howto li{margin-bottom:4px;}
+
+  /* tutorial / guia */
+  .step{display:flex;gap:13px;}
+  .step .scol{display:flex;flex-direction:column;align-items:center;flex:0 0 auto;}
+  .step .snum{width:32px;height:32px;border-radius:50%;background:var(--tijolo);color:#fff;font-family:var(--disp);font-weight:800;font-size:15px;display:grid;place-items:center;box-shadow:0 2px 0 var(--tijolo-dark);}
+  .step .sline{width:2px;flex:1;background:var(--line-strong);margin:5px 0;min-height:12px;}
+  .step:last-child .sline{display:none;}
+  .step .sbody{flex:1;padding-bottom:18px;}
+  .step .sbody h4{font-family:var(--disp);font-weight:700;font-size:15px;margin:5px 0 5px;letter-spacing:-.01em;}
+  .step .sbody p{margin:0;font-size:13.5px;color:#3a342c;line-height:1.58;}
+  .step .sbody p b{color:var(--ink);}
+  .tutcard{background:var(--paper-2);border:1.5px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px;}
+  .promptbox{background:var(--ink);color:#D8CDB8;border-radius:var(--r-sm);padding:13px 14px;font-family:var(--mono);font-size:10.5px;line-height:1.55;max-height:150px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;margin:11px 0 12px;}
+  .tip{display:flex;gap:11px;background:var(--paper-2);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:12px 13px;margin-bottom:9px;}
+  .tip .te{font-size:18px;flex:0 0 auto;line-height:1.3;}
+  .tip .tt{font-size:13px;line-height:1.5;color:#3a342c;}
+  .tip .tt b{color:var(--ink);}
   .copyp{width:100%;padding:13px;border-radius:12px;background:var(--tijolo);color:#fff;font-weight:700;font-size:14.5px;box-shadow:0 3px 0 var(--tijolo-dark);transition:transform .1s;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;}
   .copyp:active{transform:translateY(2px);}
   .codearea{width:100%;min-height:118px;padding:13px 14px;border:1.5px solid var(--line-strong);border-radius:12px;background:var(--paper-2);color:var(--ink);font-family:var(--mono);font-size:12.5px;line-height:1.5;resize:vertical;}
@@ -400,6 +417,53 @@
       <div class="by">— a economia doméstica também é política</div>
     </div>
   </section>
+
+  <!-- GUIA -->
+  <section class="view" id="v-guia">
+    <div class="sechead"><h2>Como usar</h2><span class="meta">guia rápido</span></div>
+
+    <div class="maria" style="margin-top:2px;">
+      <div class="av">M</div>
+      <div class="mtxt"><span class="who">Maria diz</span>Lançar aqui é simples. E tem um truque: dá pra anotar tudo direto do print do banco, sem digitar um número sequer.</div>
+    </div>
+
+    <div class="sechead"><h2>Jeito 1 — na mão</h2><span class="meta">rápido</span></div>
+    <div class="tutcard">
+      <p style="margin:0;font-size:13.5px;line-height:1.6;color:#3a342c;">Toca no botão vermelho <b>+</b> (ou em <b>Lançar gasto</b> / <b>Lançar plantão</b> na tela inicial). Escolhe o tipo — <b>Gasto</b>, <b>Fixo</b>, <b>Parcelado</b> ou <b>Plantão</b> —, digita o valor no teclado, escolhe a categoria e toca em <b>Salvar</b>. Pronto, caiu na conta do mês.</p>
+    </div>
+
+    <div class="sechead"><h2>Jeito 2 — do print do banco</h2><span class="meta">sem digitar</span></div>
+    <p style="font-size:13px;color:var(--ink-soft);margin:0 0 16px;line-height:1.55;">Você tira uma foto da tela do banco, manda pra IA (o Claude), e ela devolve teus lançamentos já organizados pra importar. Passo a passo:</p>
+
+    <div class="step"><div class="scol"><div class="snum">1</div><div class="sline"></div></div>
+      <div class="sbody"><h4>Tira o print</h4><p>Abre o app do teu banco, acha o <b>extrato</b> (da conta) ou a <b>fatura</b> (do cartão) e tira uma captura de tela. Se tiver muita coisa, tira <b>vários prints</b>, um de cada pedaço — pode mandar todos juntos.</p></div></div>
+
+    <div class="step"><div class="scol"><div class="snum">2</div><div class="sline"></div></div>
+      <div class="sbody"><h4>Abre o Claude</h4><p>No celular ou no computador, abre o app ou o site do <b>Claude</b> (a IA). É pra ele que você vai mandar os prints.</p></div></div>
+
+    <div class="step"><div class="scol"><div class="snum">3</div><div class="sline"></div></div>
+      <div class="sbody"><h4>Cola o prompt e manda o print</h4><p>Aqui embaixo, na caixa <b>"O prompt pra copiar"</b>, toca em <b>Copiar prompt</b>. Cola no Claude, anexa o(s) print(s) e envia.</p></div></div>
+
+    <div class="step"><div class="scol"><div class="snum">4</div><div class="sline"></div></div>
+      <div class="sbody"><h4>Recebe o código</h4><p>O Claude lê as imagens e responde um bloco de código que começa com <b>#SOB1</b>. Copia esse código inteiro (é só tocar e copiar).</p></div></div>
+
+    <div class="step"><div class="scol"><div class="snum">5</div><div class="sline"></div></div>
+      <div class="sbody"><h4>Importa aqui</h4><p>Volta pro SOBERANIA, na tela inicial toca em <b>Importar extrato do banco</b>, cola o código, <b>confere a prévia</b> e toca em <b>Importar</b>. Teus lançamentos aparecem na hora.</p></div></div>
+
+    <div class="sechead"><h2>O prompt pra copiar</h2></div>
+    <div class="tutcard">
+      <p style="margin:0;font-size:13.5px;line-height:1.6;color:#3a342c;">É a instrução que ensina o Claude a montar teus lançamentos certinho. Copia e cola no Claude junto com o print:</p>
+      <div class="promptbox" id="tutPrompt"></div>
+      <button class="copyp" onclick="copyPrompt()" style="margin-bottom:0;">📋 Copiar prompt do Claude</button>
+    </div>
+
+    <div class="sechead"><h2>Dicas</h2></div>
+    <div class="tip"><span class="te">💳</span><span class="tt"><b>Parcelas viram carnê.</b> Se a compra mostra "Parcela 1 de 5", o Claude já cria o parcelamento — e você vê o quanto falta pagar nos próximos meses na tela inicial.</span></div>
+    <div class="tip"><span class="te">🔁</span><span class="tt"><b>Contas mensais viram fixo.</b> Assinaturas (Netflix, Spotify) e contas que se repetem entram como gasto fixo e aparecem todo mês.</span></div>
+    <div class="tip"><span class="te">🛡️</span><span class="tt"><b>Não duplica.</b> Se você importar o mesmo print duas vezes, o app reconhece e ignora o que já existe.</span></div>
+    <div class="tip"><span class="te">👀</span><span class="tt"><b>Sempre confere a prévia.</b> Antes de tocar em Importar, dá pra ver tudo que vai entrar — e descartar se algo veio errado.</span></div>
+    <div class="tip"><span class="te">☁️</span><span class="tt"><b>Sincroniza sozinho.</b> Com login feito, o que você importa no computador aparece no celular automaticamente.</span></div>
+  </section>
 </div>
 
 <nav class="tabs">
@@ -408,6 +472,7 @@
   <button data-tab="plantoes"><span class="ti">⬆︎</span><span class="tl">Plantões</span></button>
   <button data-tab="analise"><span class="ti">▦</span><span class="tl">Análise</span></button>
   <button data-tab="aprender"><span class="ti">✸</span><span class="tl">Aprender</span></button>
+  <button data-tab="guia"><span class="ti">ⓘ</span><span class="tl">Guia</span></button>
 </nav>
 
 <button class="fab" id="fab" aria-label="Lançar gasto rápido"><span>+</span></button>
@@ -1095,6 +1160,7 @@ function confirmImport(){
 
 /* ================= INIT ================= */
 renderLessons();
+try{document.getElementById('tutPrompt').textContent=SOB_PROMPT;}catch(e){}
 render();
 </script>
 
