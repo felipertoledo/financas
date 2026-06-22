@@ -152,6 +152,19 @@
   .carnetotal .ct-v{font-family:var(--mono);font-weight:700;font-size:30px;letter-spacing:-.02em;margin:3px 0 2px;position:relative;line-height:1.05;}
   .carnetotal .ct-s{font-size:12px;opacity:.92;position:relative;}
 
+  /* barras de categoria (legíveis, nome inteiro) */
+  .cbar{margin-bottom:13px;}
+  .cbar:last-child{margin-bottom:2px;}
+  .cbar .cb-top{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+  .cbar .cb-em{font-size:16px;flex:0 0 auto;}
+  .cbar .cb-nm{font-weight:600;font-size:14px;flex:1;min-width:0;}
+  .cbar .cb-vl{font-family:var(--mono);font-weight:700;font-size:13.5px;white-space:nowrap;}
+  .cbar .cb-pc{font-family:var(--mono);color:var(--ink-soft);font-size:11.5px;min-width:36px;text-align:right;}
+  .cbar .cb-track{height:10px;border-radius:5px;background:var(--line);overflow:hidden;}
+  .cbar .cb-fill{display:block;height:100%;border-radius:5px;}
+  .chempty{text-align:center;padding:24px 14px;color:var(--ink-soft);font-size:13px;line-height:1.55;}
+  .chempty b{color:var(--ink);}
+
   /* lessons */
   .lesson{background:var(--paper-2);border:1.5px solid var(--line);border-radius:var(--r);padding:0;margin-bottom:11px;overflow:hidden;}
   .lesson > button.q{width:100%;display:flex;align-items:center;gap:13px;padding:15px 15px;text-align:left;}
@@ -337,9 +350,10 @@
   <section class="view" id="v-analise">
     <div class="sechead"><h2>Análise</h2><span class="meta">últimos 6 meses</span></div>
     <div class="chartcard" id="cardDonut">
-      <h3>Composição do mês</h3>
+      <h3>Onde foi o dinheiro</h3>
       <div class="ch-sub" id="donutSub">pra onde teu dinheiro está indo</div>
-      <div class="donutwrap"><div id="donut"></div><div class="dlist" id="donutList"></div></div>
+      <div id="donut" style="text-align:center;margin-bottom:10px;"></div>
+      <div id="donutList"></div>
     </div>
     <div class="chartcard">
       <h3>Compromissos à frente</h3>
@@ -460,7 +474,8 @@
 <div class="sheet" id="sheet2" role="dialog" aria-modal="true">
   <div class="grab"></div>
   <div class="shead"><h3>Ajustes</h3><button class="closeb" onclick="closeAjustes()">Fechar ✕</button></div>
-  <p style="font-size:13px;color:var(--ink-soft);margin:2px 0 6px;line-height:1.5;">Teus dados ficam só neste aparelho. Faz backup de vez em quando — é a tua memória, não a minha.</p>
+  <p style="font-size:13px;color:var(--ink-soft);margin:2px 0 6px;line-height:1.5;">Com login, teus lançamentos sincronizam entre os aparelhos. O backup é uma cópia extra de segurança.</p>
+  <div class="setrow" id="signoutRow" style="display:none;"><div class="si"><b>Conta conectada</b><span id="syncWho">—</span></div><button class="setbtn danger" onclick="SOBLogout()">Sair</button></div>
   <div class="setrow"><div class="si"><b>Salário base do mês</b><span>Quanto você se "paga" de média. Vira a base da projeção quando não tem plantão lançado.</span></div><button class="setbtn" onclick="setSalario()" id="salBtn">Definir</button></div>
   <div class="setrow"><div class="si"><b>Baixar backup</b><span>Salva um .json com tudo.</span></div><button class="setbtn" onclick="exportData()">Baixar</button></div>
   <div class="setrow"><div class="si"><b>Restaurar backup</b><span>Carrega um .json salvo antes.</span></div><button class="setbtn" onclick="document.getElementById('importFile').click()">Carregar</button></div>
@@ -486,6 +501,22 @@
   <textarea class="codearea" id="codeInput" placeholder="#SOB1&#10;G|2026-06-21|comida|45.90|Padaria&#10;P|2026-06-20|3500.00|UPA Santa Marta|recebido" oninput="analisarCodigo()"></textarea>
   <div class="previewbox" id="previewBox"></div>
   <div class="savebar"><button class="savebtn ink" id="importBtn" onclick="confirmImport()" disabled>Importar</button></div>
+</div>
+
+<!-- LOGIN / SINCRONIZAÇÃO -->
+<div class="scrim" id="loginOverlay" style="display:none;opacity:1;pointer-events:auto;backdrop-filter:none;background:radial-gradient(120% 60% at 50% -10%, rgba(224,162,26,.12), transparent 60%),var(--paper);align-items:center;justify-content:center;padding:24px;z-index:200;">
+  <div style="max-width:360px;width:100%;">
+    <div class="brand" style="justify-content:center;margin-bottom:8px;"><span class="dot"></span><h1 style="font-family:var(--disp);font-weight:800;font-size:26px;letter-spacing:-.02em;margin:0;">SOBERANIA</h1></div>
+    <p style="text-align:center;color:var(--ink-soft);font-size:13.5px;margin:0 0 20px;line-height:1.5;">Entra com teu e-mail pra teus lançamentos ficarem iguais no celular e no computador.</p>
+    <div class="field" style="margin-top:0;"><label>E-mail</label><input type="email" id="loginEmail" placeholder="voce@email.com" autocomplete="username" autocapitalize="off"></div>
+    <div class="field"><label>Senha</label><input type="password" id="loginPass" placeholder="mínimo 6 caracteres" autocomplete="current-password"></div>
+    <div id="loginErr" style="display:none;color:var(--tijolo);font-size:12.5px;margin-top:10px;font-weight:600;line-height:1.4;"></div>
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button class="savebtn green" id="btnEntrar" onclick="SOBLogin('entrar')">Entrar</button>
+      <button class="savebtn ink" id="btnCriar" onclick="SOBLogin('criar')">Criar conta</button>
+    </div>
+    <p style="text-align:center;color:var(--ink-soft);font-size:11.5px;margin-top:16px;line-height:1.5;">Primeira vez aqui? Toca em <b>Criar conta</b>.<br>Já criou antes? Toca em <b>Entrar</b>.</p>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -535,7 +566,16 @@ function load(){
   if(!d)d={};
   return {gastos:d.gastos||[],plantoes:d.plantoes||[],fixos:d.fixos||[],parcelas:d.parcelas||[],pagos:d.pagos||{},config:Object.assign({salario:0},d.config||{}),v:2};
 }
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('⚠️ Não consegui salvar neste navegador');}}
+let _applyingRemote=false;
+function persistLocalOnly(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function persist(){persistLocalOnly();if(window.SOBPush&&!_applyingRemote){try{window.SOBPush(S);}catch(e){}}}
+window.SOBGetState=()=>S;
+window.SOBApplyRemote=function(data){
+  if(!data)return;
+  S={gastos:data.gastos||[],plantoes:data.plantoes||[],fixos:data.fixos||[],parcelas:data.parcelas||[],pagos:data.pagos||{},config:Object.assign({salario:0},data.config||{}),v:2};
+  _applyingRemote=true;
+  try{render();if(typeof refreshSal==='function')refreshSal();}finally{_applyingRemote=false;}
+};
 
 /* ================= HELPERS ================= */
 function ymNow(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
@@ -739,11 +779,17 @@ function renderAnalise(){
   // donut do mês
   const d=monthData(view.month);
   document.getElementById('donutSub').textContent='em '+monthLabel(view.month);
-  const ditems=d.catList.map(c=>({label:cat(c.id).nome,value:c.value,color:cat(c.id).cor}));
+  const ditems=d.catList.map(c=>({label:cat(c.id).nome,em:cat(c.id).em,value:c.value,color:cat(c.id).cor}));
   document.getElementById('donut').innerHTML=donut(ditems);
   const dl=document.getElementById('donutList');
-  if(!ditems.length)dl.innerHTML='<div style="color:var(--ink-soft);font-size:13px">Sem despesas neste mês ainda.</div>';
-  else{const tot=ditems.reduce((a,i)=>a+i.value,0);dl.innerHTML=ditems.slice(0,6).map(i=>`<div class="dline"><span class="sw" style="background:${i.color}"></span><span class="dn">${i.label}</span><span class="dv">${fmtShort(i.value)}</span><span class="dp">${(i.value/tot*100).toFixed(0)}%</span></div>`).join('');}
+  if(!ditems.length)dl.innerHTML='<div class="chempty">Sem gastos lançados em '+monthShort(view.month)+' ainda.<br>Lança um gasto ou <b>importa teu extrato</b> que as categorias aparecem aqui.</div>';
+  else{
+    const tot=ditems.reduce((a,i)=>a+i.value,0);const maxc=ditems[0].value;
+    dl.innerHTML=ditems.map(i=>`<div class="cbar">
+        <div class="cb-top"><span class="cb-em">${i.em}</span><span class="cb-nm">${i.label}</span><span class="cb-vl">${fmt(i.value)}</span><span class="cb-pc">${(i.value/tot*100).toFixed(0)}%</span></div>
+        <div class="cb-track"><span class="cb-fill" style="width:${(i.value/maxc*100).toFixed(1)}%;background:${i.color}"></span></div>
+      </div>`).join('');
+  }
 
   // séries 6 meses
   const months=monthsBack(view.month,6);const labels=months.map(monthShort);
@@ -764,7 +810,10 @@ function renderAnalise(){
   // compromissos à frente (6 meses): fixos + parcelas já comprometidos
   const fwd=monthsForward(view.month,6);
   const segsArr=fwd.map(m=>{const md=monthData(m);return [{v:md.sFixoTot,color:'#8A6E08'},{v:md.sParcTot,color:'#3B7DD8'}];});
-  document.getElementById('chartFuturo').innerHTML=barsStacked(fwd.map(monthShort),segsArr);
+  const temCompromisso=segsArr.some(s=>s[0].v>0||s[1].v>0);
+  document.getElementById('chartFuturo').innerHTML=temCompromisso
+    ? barsStacked(fwd.map(monthShort),segsArr)
+    : '<div class="chempty">Você ainda não tem <b>parcelas</b> nem <b>gastos fixos</b> cadastrados.<br>Cadastra pelo botão <b>+ fixo / parcela</b> (na aba Início) ou importando o extrato — aí aparece aqui o quanto já está comprometido nos próximos meses.</div>';
 }
 
 /* ================= CARNÊ / PARCELAS EM ABERTO ================= */
@@ -940,9 +989,13 @@ Responda APENAS com o código no formato abaixo, dentro de um bloco de código m
 #SOB1
 G|AAAA-MM-DD|categoria|valor|descrição curta
 P|AAAA-MM-DD|valor|origem|recebido
+C|AAAA-MM|categoria|valor_da_parcela|num_parcelas|descrição
+F|AAAA-MM|categoria|valor_mensal|dia_vencimento|nome
 
 Regras:
-- G = gasto (saída de dinheiro). P = plantão/entrada.
+- G = gasto avulso (saída única). P = plantão/entrada.
+- C = compra parcelada. Use quando a transação mostrar "Parcela X de N". AAAA-MM é o mês da 1ª parcela (se a tela mostrar "Parcela 2 de 5", volte 1 mês; "3 de 5", volte 2; e assim por diante). valor_da_parcela é o valor de UMA parcela; num_parcelas é o total (o N). Lance a compra parcelada como UMA linha C, não como vários G.
+- F = gasto fixo mensal recorrente (aluguel, assinatura tipo Netflix/Spotify/YouTube, internet, mensalidade). AAAA-MM é o mês em que começa; dia_vencimento pode ser 0 se não souber.
 - Valor com ponto decimal e duas casas, ex.: 45.90. Sem "R$" e sem separador de milhar.
 - Uma transação por linha. Não use o caractere barra-vertical dentro da descrição.
 - Se não tiver certeza da categoria, use "outros".
@@ -960,8 +1013,9 @@ function copyPrompt(){copyText(SOB_PROMPT);toast('📋 Prompt copiado! Cola no C
 
 function parseNum(s){if(s==null)return NaN;s=String(s).replace(/[^\d.,-]/g,'').trim();if(!s)return NaN;if(s.indexOf('.')>=0&&s.indexOf(',')>=0)s=s.replace(/\./g,'').replace(',','.');else if(s.indexOf(',')>=0)s=s.replace(',','.');return parseFloat(s);}
 function normDate(s){if(!s)return null;s=String(s).trim();let m;if(m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');if(m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/)){let y=m[3];if(y.length===2)y='20'+y;return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');}if(m=s.match(/^(\d{1,2})\/(\d{1,2})$/)){const y=new Date().getFullYear();return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');}return null;}
+function normYM(s){if(!s)return null;s=String(s).trim();let m;if(m=s.match(/^(\d{4})-(\d{1,2})$/))return m[1]+'-'+m[2].padStart(2,'0');if(m=s.match(/^(\d{1,2})\/(\d{4})$/))return m[2]+'-'+m[1].padStart(2,'0');const d=normDate(s);return d?d.slice(0,7):null;}
 function parseSOB(text){
-  const lines=text.split(/\r?\n/);const gastos=[],plantoes=[],warns=[];
+  const lines=text.split(/\r?\n/);const gastos=[],plantoes=[],parcelas=[],fixos=[],warns=[];
   for(const raw of lines){
     const line=raw.trim();
     if(!line||line.startsWith('```')||line.startsWith('#'))continue;
@@ -978,12 +1032,24 @@ function parseSOB(text){
       if(!data||!(valor>0)){warns.push('Pulei (plantão inválido): '+line);continue;}
       const status=(st.indexOf('pend')>=0||st.indexOf('receber')>=0)?'pendente':'recebido';
       plantoes.push({data,valor,local,status});
+    }else if(t==='C'){
+      const inicio=normYM(parts[1]);const catRaw=(parts[2]||'').toLowerCase();const valorParc=parseNum(parts[3]);const n=parseInt(parts[4],10);const desc=parts.slice(5).join(' ').trim();
+      if(!inicio||!(valorParc>0)||!(n>=2)){warns.push('Pulei (parcela inválida): '+line);continue;}
+      const categoria=CATS.some(c=>c.id===catRaw)?catRaw:'outros';
+      parcelas.push({inicio,categoria,valorParc,n,desc});
+    }else if(t==='F'){
+      const desde=normYM(parts[1]);const catRaw=(parts[2]||'').toLowerCase();const valor=parseNum(parts[3]);const dia=parseInt(parts[4],10)||null;const nome=parts.slice(5).join(' ').trim();
+      if(!desde||!(valor>0)||!nome){warns.push('Pulei (fixo inválido): '+line);continue;}
+      const categoria=CATS.some(c=>c.id===catRaw)?catRaw:'outros';
+      fixos.push({desde,categoria,valor,dia,nome});
     }else{warns.push('Linha não reconhecida: '+line);}
   }
-  return {gastos,plantoes,warns};
+  return {gastos,plantoes,parcelas,fixos,warns};
 }
 function isDupGasto(g){return S.gastos.some(x=>x.data===g.data&&Math.abs(x.valor-g.valor)<0.005&&(x.nota||'').toLowerCase().trim()===(g.nota||'').toLowerCase().trim());}
 function isDupPlant(p){return S.plantoes.some(x=>x.data===p.data&&Math.abs(x.valor-p.valor)<0.005&&(x.local||'').toLowerCase().trim()===(p.local||'').toLowerCase().trim());}
+function isDupParc(p){return S.parcelas.some(x=>x.inicio===p.inicio&&x.n===p.n&&Math.abs(x.valorParc-p.valorParc)<0.005&&(x.desc||'').toLowerCase().trim()===(p.desc||'').toLowerCase().trim());}
+function isDupFixo(f){return S.fixos.some(x=>x.desde===f.desde&&Math.abs(x.valor-f.valor)<0.005&&(x.nome||'').toLowerCase().trim()===(f.nome||'').toLowerCase().trim());}
 
 function analisarCodigo(){
   const txt=document.getElementById('codeInput').value;const box=document.getElementById('previewBox');const btn=document.getElementById('importBtn');
@@ -991,30 +1057,37 @@ function analisarCodigo(){
   const r=parseSOB(txt);
   r.gastos.forEach(g=>g._dup=isDupGasto(g));
   r.plantoes.forEach(p=>p._dup=isDupPlant(p));
+  r.parcelas.forEach(p=>p._dup=isDupParc(p));
+  r.fixos.forEach(f=>f._dup=isDupFixo(f));
   parsed=r;
-  const newG=r.gastos.filter(g=>!g._dup),newP=r.plantoes.filter(p=>!p._dup);
+  const newG=r.gastos.filter(g=>!g._dup),newP=r.plantoes.filter(p=>!p._dup),newC=r.parcelas.filter(p=>!p._dup),newF=r.fixos.filter(f=>!f._dup);
   const totG=newG.reduce((a,g)=>a+g.valor,0),totP=newP.reduce((a,p)=>a+p.valor,0);
-  const dupCount=(r.gastos.length-newG.length)+(r.plantoes.length-newP.length);
-  if(!r.gastos.length&&!r.plantoes.length){box.innerHTML='<div class="warnbox"><b>Não achei lançamentos válidos.</b>Confere se colou o código que o Claude gerou — ele começa com #SOB1.</div>';btn.disabled=true;btn.textContent='Importar';return;}
+  const dupCount=(r.gastos.length-newG.length)+(r.plantoes.length-newP.length)+(r.parcelas.length-newC.length)+(r.fixos.length-newF.length);
+  const anyParsed=r.gastos.length||r.plantoes.length||r.parcelas.length||r.fixos.length;
+  if(!anyParsed){box.innerHTML='<div class="warnbox"><b>Não achei lançamentos válidos.</b>Confere se colou o código que o Claude gerou — ele começa com #SOB1.</div>';btn.disabled=true;btn.textContent='Importar';return;}
   let html='<div class="psum">';
   html+='<div class="pc out"><div class="pn">'+newG.length+'</div><div class="pl">gastos</div></div>';
-  html+='<div class="pc in"><div class="pn">'+newP.length+'</div><div class="pl">entradas</div></div>';
-  html+='<div class="pc"><div class="pn">'+fmtShort(totP-totG)+'</div><div class="pl">líquido</div></div></div>';
+  html+='<div class="pc"><div class="pn">'+(newC.length+newF.length)+'</div><div class="pl">parc/fixo</div></div>';
+  html+='<div class="pc in"><div class="pn">'+newP.length+'</div><div class="pl">entradas</div></div></div>';
+  r.parcelas.forEach(p=>{const c=cat(p.categoria);html+='<div class="pvitem '+(p._dup?'dup':'')+'"><span class="em">'+c.em+'</span><span class="pm"><span class="a">'+esc(p.desc||c.nome)+'</span><span class="b">'+p.n+'x de '+fmt(p.valorParc)+' · começa '+monthShort(p.inicio)+(p._dup?' · já existe':'')+'</span></span><span class="pv out">'+p.n+'x</span></div>';});
+  r.fixos.forEach(f=>{const c=cat(f.categoria);html+='<div class="pvitem '+(f._dup?'dup':'')+'"><span class="em">'+c.em+'</span><span class="pm"><span class="a">'+esc(f.nome||c.nome)+'</span><span class="b">fixo mensal · '+c.nome+(f._dup?' · já existe':'')+'</span></span><span class="pv out">'+fmt(f.valor)+'</span></div>';});
   r.gastos.forEach(g=>{const c=cat(g.categoria);html+='<div class="pvitem '+(g._dup?'dup':'')+'"><span class="em">'+c.em+'</span><span class="pm"><span class="a">'+(g.nota?esc(g.nota):c.nome)+'</span><span class="b">'+c.nome+' · '+dayLabel(g.data)+(g._dup?' · já existe':'')+'</span></span><span class="pv out">−'+fmt(g.valor)+'</span></div>';});
   r.plantoes.forEach(p=>{html+='<div class="pvitem '+(p._dup?'dup':'')+'"><span class="em">🩺</span><span class="pm"><span class="a">'+(p.local?esc(p.local):'Plantão')+'</span><span class="b">'+dayLabel(p.data)+' · '+p.status+(p._dup?' · já existe':'')+'</span></span><span class="pv in">+'+fmt(p.valor)+'</span></div>';});
   if(dupCount>0)html+='<div class="warnbox"><b>'+dupCount+' já existe(m) e foram ignorados.</b>Pra não duplicar, esses não entram de novo.</div>';
   if(r.warns.length)html+='<div class="warnbox"><b>Avisos</b>'+r.warns.slice(0,6).map(esc).join('<br>')+'</div>';
   box.innerHTML=html;
-  const n=newG.length+newP.length;
+  const n=newG.length+newP.length+newC.length+newF.length;
   btn.disabled=n===0;btn.textContent=n===0?'Nada novo pra importar':('Importar '+n+' lançamento'+(n===1?'':'s'));
 }
 function confirmImport(){
   if(!parsed)return;
-  const newG=parsed.gastos.filter(g=>!g._dup),newP=parsed.plantoes.filter(p=>!p._dup);
+  const newG=parsed.gastos.filter(g=>!g._dup),newP=parsed.plantoes.filter(p=>!p._dup),newC=parsed.parcelas.filter(p=>!p._dup),newF=parsed.fixos.filter(f=>!f._dup);
   let lastMonth=null;
   newG.forEach(g=>{S.gastos.push({id:uid(),valor:g.valor,categoria:g.categoria,nota:g.nota,data:g.data,ts:Date.now().toString()});lastMonth=ym(g.data);});
   newP.forEach(p=>{S.plantoes.push({id:uid(),valor:p.valor,local:p.local,status:p.status,data:p.data,ts:Date.now().toString()});lastMonth=ym(p.data);});
-  const n=newG.length+newP.length;if(n===0)return;
+  newC.forEach(p=>{S.parcelas.push({id:uid(),desc:p.desc,categoria:p.categoria,valorTotal:Math.round(p.valorParc*p.n*100)/100,valorParc:p.valorParc,n:p.n,inicio:p.inicio,ts:Date.now().toString()});if(!lastMonth)lastMonth=p.inicio;});
+  newF.forEach(f=>{S.fixos.push({id:uid(),nome:f.nome,categoria:f.categoria,valor:f.valor,dia:f.dia,desde:f.desde,ate:null,ts:Date.now().toString()});});
+  const n=newG.length+newP.length+newC.length+newF.length;if(n===0)return;
   if(lastMonth)view.month=lastMonth;
   document.getElementById('codeInput').value='';document.getElementById('previewBox').innerHTML='';parsed=null;document.getElementById('importBtn').disabled=true;document.getElementById('importBtn').textContent='Importar';
   closeImport();render();toast('✅ '+n+' lançamento'+(n===1?'':'s')+' importado'+(n===1?'':'s')+'!');
@@ -1023,6 +1096,146 @@ function confirmImport(){
 /* ================= INIT ================= */
 renderLessons();
 render();
+</script>
+
+<!-- ================= SINCRONIZAÇÃO (Firebase) ================= -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { initializeFirestore, persistentLocalCache, getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCjjXvqAEwtEoi-qIvvWBLxfn65CqOEXX0",
+  authDomain: "financas-a7a83.firebaseapp.com",
+  projectId: "financas-a7a83",
+  storageBucket: "financas-a7a83.firebasestorage.app",
+  messagingSenderId: "35391864584",
+  appId: "1:35391864584:web:84ef70683faec3b86876bd"
+};
+
+const $ = id => document.getElementById(id);
+let app, auth, db, uid=null, unsub=null;
+
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  try { db = initializeFirestore(app, { localCache: persistentLocalCache() }); }
+  catch(e){ db = getFirestore(app); }
+} catch(e){ console.warn('Firebase init falhou:', e); }
+
+function showLogin(show){ const ov=$('loginOverlay'); if(ov) ov.style.display = show ? 'flex' : 'none'; }
+function setErr(msg){ const e=$('loginErr'); if(e){ e.textContent=msg||''; e.style.display=msg?'block':'none'; } }
+
+/* ---- merge local + nuvem (nada se perde) ---- */
+function mergeArr(a,b){ const m=new Map(); [...(a||[]),...(b||[])].forEach(x=>{ if(x&&x.id) m.set(x.id,x); }); return [...m.values()]; }
+function mergeState(local, cloud){
+  local=local||{}; cloud=cloud||{};
+  const cfg = (local.config&&local.config.salario>0) ? local.config : (cloud.config||{salario:0});
+  return {
+    gastos:   mergeArr(local.gastos, cloud.gastos),
+    plantoes: mergeArr(local.plantoes, cloud.plantoes),
+    fixos:    mergeArr(local.fixos, cloud.fixos),
+    parcelas: mergeArr(local.parcelas, cloud.parcelas),
+    pagos:    Object.assign({}, cloud.pagos||{}, local.pagos||{}),
+    config:   Object.assign({salario:0}, cfg),
+    v:2
+  };
+}
+
+const refFor = u => doc(db,'users',u);
+
+async function pushToCloud(state){
+  if(!db||!uid) return;
+  try { await setDoc(refFor(uid), { blob: JSON.stringify(state), at: Date.now() }); }
+  catch(e){ console.warn('Sync: falha ao salvar na nuvem', e); }
+}
+window.SOBPush = (state)=>{ pushToCloud(state); };
+
+function readSnap(snap){
+  if(!snap || !snap.exists()) return null;
+  const d=snap.data(); if(!d || !d.blob) return null;
+  try { return JSON.parse(d.blob); } catch(e){ return null; }
+}
+
+function startSync(){
+  if(unsub){ unsub(); unsub=null; }
+  unsub = onSnapshot(refFor(uid), snap=>{
+    if(snap.metadata && snap.metadata.hasPendingWrites) return; // ignora a própria escrita
+    const data = readSnap(snap);
+    if(data && window.SOBApplyRemote) window.SOBApplyRemote(data);
+  }, err=>console.warn('Sync: erro no listener', err));
+}
+
+async function reconcile(){
+  let cloud=null;
+  try { cloud = readSnap(await getDoc(refFor(uid))); } catch(e){ console.warn('Sync: falha ao ler nuvem', e); }
+  const local = window.SOBGetState ? window.SOBGetState() : null;
+  if(!cloud){
+    await pushToCloud(local || {gastos:[],plantoes:[],fixos:[],parcelas:[],pagos:{},config:{salario:0},v:2});
+  } else {
+    const merged = mergeState(local, cloud);
+    if(window.SOBApplyRemote) window.SOBApplyRemote(merged);
+    await pushToCloud(merged);
+  }
+  startSync();
+}
+
+function mapErr(code){
+  const m={
+    'auth/invalid-email':'E-mail inválido.',
+    'auth/missing-password':'Digite a senha.',
+    'auth/weak-password':'A senha precisa de pelo menos 6 caracteres.',
+    'auth/email-already-in-use':'Esse e-mail já tem conta. Toca em Entrar.',
+    'auth/invalid-credential':'E-mail ou senha incorretos.',
+    'auth/wrong-password':'Senha incorreta.',
+    'auth/user-not-found':'Não achei conta com esse e-mail. Toca em Criar conta.',
+    'auth/network-request-failed':'Sem internet agora. Tenta de novo.',
+    'auth/too-many-requests':'Muitas tentativas. Espera um pouco e tenta de novo.'
+  };
+  return m[code] || ('Não consegui: '+(code||'erro desconhecido'));
+}
+
+window.SOBLogin = async (mode)=>{
+  if(!auth){ setErr('Sincronização indisponível agora. Confere tua internet.'); return; }
+  const email=(($('loginEmail')||{}).value||'').trim();
+  const pass=(($('loginPass')||{}).value||'');
+  if(!email){ setErr('Digite seu e-mail.'); return; }
+  if(pass.length<6){ setErr('A senha precisa de 6+ caracteres.'); return; }
+  setErr('');
+  const bE=$('btnEntrar'), bC=$('btnCriar'); if(bE)bE.disabled=true; if(bC)bC.disabled=true;
+  try {
+    if(mode==='criar') await createUserWithEmailAndPassword(auth,email,pass);
+    else await signInWithEmailAndPassword(auth,email,pass);
+    if($('loginPass')) $('loginPass').value='';
+  } catch(e){ setErr(mapErr(e.code||'')); }
+  finally { if(bE)bE.disabled=false; if(bC)bC.disabled=false; }
+};
+window.SOBLogout = async ()=>{
+  if(!auth) return;
+  if(!confirm('Sair vai parar a sincronização neste aparelho. Teus dados continuam salvos. Continuar?')) return;
+  try { await signOut(auth); } catch(e){}
+};
+
+if(auth){
+  setPersistence(auth, browserLocalPersistence).catch(()=>{});
+  onAuthStateChanged(auth, user=>{
+    if(user){
+      uid = user.uid;
+      setErr(''); showLogin(false);
+      const who=$('syncWho'); if(who) who.textContent=user.email||'conectado';
+      const row=$('signoutRow'); if(row) row.style.display='';
+      reconcile();
+    } else {
+      uid=null;
+      if(unsub){ unsub(); unsub=null; }
+      const row=$('signoutRow'); if(row) row.style.display='none';
+      showLogin(true);
+    }
+  });
+} else {
+  // Firebase não carregou (ex.: offline): app segue funcionando local, sem login travando.
+  showLogin(false);
+}
 </script>
 </body>
 </html>
