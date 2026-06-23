@@ -164,6 +164,10 @@
   .cbar .cb-fill{display:block;height:100%;border-radius:5px;}
   .chempty{text-align:center;padding:24px 14px;color:var(--ink-soft);font-size:13px;line-height:1.55;}
   .chempty b{color:var(--ink);}
+  .cbar .cb-rank{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-soft);min-width:16px;flex:0 0 auto;text-align:center;}
+  .cbar .cb-ct{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--ouro-dark);background:rgba(224,162,26,.18);border-radius:20px;padding:1px 7px;flex:0 0 auto;}
+  .cb-insight{font-size:12.5px;line-height:1.5;color:var(--ink-soft);background:rgba(224,162,26,.09);border-left:3px solid var(--ouro);border-radius:8px;padding:9px 11px;margin:0 0 13px;}
+  .cb-insight b{color:var(--ink);font-weight:700;}
 
   /* lessons */
   .lesson{background:var(--paper-2);border:1.5px solid var(--line);border-radius:var(--r);padding:0;margin-bottom:11px;overflow:hidden;}
@@ -372,6 +376,16 @@
       <div id="donut" style="text-align:center;margin-bottom:10px;"></div>
       <div id="donutList"></div>
     </div>
+    <div class="chartcard" id="cardLugares">
+      <h3>Onde você mais gasta</h3>
+      <div class="ch-sub" id="lugaresSub">teus lugares do mês — do que mais pesa pro que menos pesa</div>
+      <div id="lugaresList"></div>
+    </div>
+    <div class="chartcard" id="cardTop">
+      <h3>Maiores gastos do mês</h3>
+      <div class="ch-sub">os cinco tombos individuais que mais doeram</div>
+      <div id="topList"></div>
+    </div>
     <div class="chartcard">
       <h3>Compromissos à frente</h3>
       <div class="ch-sub">renda já comprometida nos próximos 6 meses</div>
@@ -433,32 +447,32 @@
     </div>
 
     <div class="sechead"><h2>Jeito 2 — do print do banco</h2><span class="meta">sem digitar</span></div>
-    <p style="font-size:13px;color:var(--ink-soft);margin:0 0 16px;line-height:1.55;">Você tira uma foto da tela do banco, manda pra IA (o Claude), e ela devolve teus lançamentos já organizados pra importar. Passo a passo:</p>
+    <p style="font-size:13px;color:var(--ink-soft);margin:0 0 16px;line-height:1.55;">Você tira uma foto da tela do banco, manda pra uma IA (Claude, ChatGPT, Gemini, etc.), e ela devolve teus lançamentos já organizados pra importar. Passo a passo:</p>
 
     <div class="step"><div class="scol"><div class="snum">1</div><div class="sline"></div></div>
       <div class="sbody"><h4>Tira o print</h4><p>Abre o app do teu banco, acha o <b>extrato</b> (da conta) ou a <b>fatura</b> (do cartão) e tira uma captura de tela. Se tiver muita coisa, tira <b>vários prints</b>, um de cada pedaço — pode mandar todos juntos.</p></div></div>
 
     <div class="step"><div class="scol"><div class="snum">2</div><div class="sline"></div></div>
-      <div class="sbody"><h4>Abre o Claude</h4><p>No celular ou no computador, abre o app ou o site do <b>Claude</b> (a IA). É pra ele que você vai mandar os prints.</p></div></div>
+      <div class="sbody"><h4>Abre uma IA</h4><p>No celular ou no computador, abre o app ou o site de uma <b>IA</b> (Claude, ChatGPT, Gemini, etc.). É pra ela que você vai mandar o extrato.</p></div></div>
 
     <div class="step"><div class="scol"><div class="snum">3</div><div class="sline"></div></div>
-      <div class="sbody"><h4>Cola o prompt e manda o print</h4><p>Aqui embaixo, na caixa <b>"O prompt pra copiar"</b>, toca em <b>Copiar prompt</b>. Cola no Claude, anexa o(s) print(s) e envia.</p></div></div>
+      <div class="sbody"><h4>Cola o prompt e manda o print</h4><p>Aqui embaixo, na caixa <b>"O prompt pra copiar"</b>, toca em <b>Copiar prompt</b>. Cola na IA, anexa o(s) print(s) ou PDF(s) e envia.</p></div></div>
 
     <div class="step"><div class="scol"><div class="snum">4</div><div class="sline"></div></div>
-      <div class="sbody"><h4>Recebe o código</h4><p>O Claude lê as imagens e responde um bloco de código que começa com <b>#SOB1</b>. Copia esse código inteiro (é só tocar e copiar).</p></div></div>
+      <div class="sbody"><h4>Recebe o código</h4><p>A IA lê os arquivos e responde um bloco de código que começa com <b>#SOB1</b>. Copia esse código inteiro (é só tocar e copiar).</p></div></div>
 
     <div class="step"><div class="scol"><div class="snum">5</div><div class="sline"></div></div>
       <div class="sbody"><h4>Importa aqui</h4><p>Volta pro SOBERANIA, na tela inicial toca em <b>Importar extrato do banco</b>, cola o código, <b>confere a prévia</b> e toca em <b>Importar</b>. Teus lançamentos aparecem na hora.</p></div></div>
 
     <div class="sechead"><h2>O prompt pra copiar</h2></div>
     <div class="tutcard">
-      <p style="margin:0;font-size:13.5px;line-height:1.6;color:#3a342c;">É a instrução que ensina o Claude a montar teus lançamentos certinho. Copia e cola no Claude junto com o print:</p>
+      <p style="margin:0;font-size:13.5px;line-height:1.6;color:#3a342c;">É a instrução que ensina a IA a montar teus lançamentos certinho. Copia e cola na IA junto com o extrato:</p>
       <div class="promptbox" id="tutPrompt"></div>
-      <button class="copyp" onclick="copyPrompt()" style="margin-bottom:0;">📋 Copiar prompt do Claude</button>
+      <button class="copyp" onclick="copyPrompt()" style="margin-bottom:0;">📋 Copiar prompt</button>
     </div>
 
     <div class="sechead"><h2>Dicas</h2></div>
-    <div class="tip"><span class="te">💳</span><span class="tt"><b>Parcelas viram carnê.</b> Se a compra mostra "Parcela 1 de 5", o Claude já cria o parcelamento — e você vê o quanto falta pagar nos próximos meses na tela inicial.</span></div>
+    <div class="tip"><span class="te">💳</span><span class="tt"><b>Parcelas viram carnê.</b> Se a compra mostra "Parcela 1 de 5", a IA já cria o parcelamento — e você vê o quanto falta pagar nos próximos meses na tela inicial.</span></div>
     <div class="tip"><span class="te">🔁</span><span class="tt"><b>Contas mensais viram fixo.</b> Assinaturas (Netflix, Spotify) e contas que se repetem entram como gasto fixo e aparecem todo mês.</span></div>
     <div class="tip"><span class="te">🛡️</span><span class="tt"><b>Não duplica.</b> Se você importar o mesmo print duas vezes, o app reconhece e ignora o que já existe.</span></div>
     <div class="tip"><span class="te">👀</span><span class="tt"><b>Sempre confere a prévia.</b> Antes de tocar em Importar, dá pra ver tudo que vai entrar — e descartar se algo veio errado.</span></div>
@@ -557,12 +571,12 @@
   <div class="howto">
     <b>Print do banco vira lançamento — sem digitar:</b>
     <ol>
-      <li>Toca em <b>Copiar prompt</b> e cola no chat do Claude junto com o <b>print do teu extrato</b>.</li>
-      <li>O Claude lê e devolve um <b>código</b>. Cola ele no campo abaixo.</li>
+      <li>Toca em <b>Copiar prompt</b> e cola no chat da IA junto com o <b>print ou PDF do teu extrato</b>.</li>
+      <li>A IA lê e devolve um <b>código</b>. Cola ele no campo abaixo.</li>
       <li>Confere a prévia e toca em <b>Importar</b>. Pronto.</li>
     </ol>
   </div>
-  <button class="copyp" onclick="copyPrompt()">📋 Copiar prompt do Claude</button>
+  <button class="copyp" onclick="copyPrompt()">📋 Copiar prompt</button>
   <label style="font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);font-weight:600;display:block;margin-bottom:6px;">Cola o código aqui</label>
   <textarea class="codearea" id="codeInput" placeholder="#SOB1&#10;G|2026-06-21|comida|45.90|Padaria&#10;P|2026-06-20|3500.00|UPA Santa Marta|recebido" oninput="analisarCodigo()"></textarea>
   <div class="previewbox" id="previewBox"></div>
@@ -657,6 +671,7 @@ function shiftYm(m,d){let[y,mo]=m.split('-').map(Number);mo+=d;while(mo<1){mo+=1
 function monthsBetween(a,b){const[ay,am]=a.split('-').map(Number),[by,bm]=b.split('-').map(Number);return (by-ay)*12+(bm-am);}
 function monthsBack(end,n){const arr=[];for(let i=n-1;i>=0;i--)arr.push(shiftYm(end,-i));return arr;}
 function dayLabel(iso){const[y,m,d]=iso.split('-').map(Number);const dt=new Date(y,m-1,d);if(iso===todayISO())return 'Hoje';const yd=new Date();yd.setDate(yd.getDate()-1);const yi=yd.getFullYear()+'-'+String(yd.getMonth()+1).padStart(2,'0')+'-'+String(yd.getDate()).padStart(2,'0');if(iso===yi)return 'Ontem';return dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});}
+function normMerch(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s*\(\d+\)\s*$/,'').replace(/\s+\d{1,4}$/,'').replace(/[^a-z0-9]+/g,' ').trim();}
 function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function paidKey(t,id,m){return t+':'+id+':'+m;}
 function isPaid(t,id,m){return !!S.pagos[paidKey(t,id,m)];}
@@ -851,11 +866,38 @@ function renderAnalise(){
   if(!ditems.length)dl.innerHTML='<div class="chempty">Sem gastos lançados em '+monthShort(view.month)+' ainda.<br>Lança um gasto ou <b>importa teu extrato</b> que as categorias aparecem aqui.</div>';
   else{
     const tot=ditems.reduce((a,i)=>a+i.value,0);const maxc=ditems[0].value;
-    dl.innerHTML=ditems.map(i=>`<div class="cbar">
-        <div class="cb-top"><span class="cb-em">${i.em}</span><span class="cb-nm">${i.label}</span><span class="cb-vl">${fmt(i.value)}</span><span class="cb-pc">${(i.value/tot*100).toFixed(0)}%</span></div>
+    const insC='Tua maior categoria é <b>'+ditems[0].label+'</b> — '+(ditems[0].value/tot*100).toFixed(0)+'% de tudo que saiu. De cima pra baixo, é nessa ordem que o mês foi embora.';
+    dl.innerHTML='<div class="cb-insight">'+insC+'</div>'+ditems.map((i,ix)=>`<div class="cbar">
+        <div class="cb-top"><span class="cb-rank">${ix+1}</span><span class="cb-em">${i.em}</span><span class="cb-nm">${i.label}</span><span class="cb-vl">${fmt(i.value)}</span><span class="cb-pc">${(i.value/tot*100).toFixed(0)}%</span></div>
         <div class="cb-track"><span class="cb-fill" style="width:${(i.value/maxc*100).toFixed(1)}%;background:${i.color}"></span></div>
       </div>`).join('');
   }
+
+  // ---- onde você mais gasta: por lugar (mês atual) ----
+  const lugList=document.getElementById('lugaresList');
+  const byMerch={};
+  d.avulsos.forEach(g=>{const disp=((g.nota||'').replace(/\s*\(\d+\)\s*$/,'').trim())||cat(g.categoria).nome;const key=normMerch(disp)||cat(g.categoria).nome;const o=byMerch[key]||(byMerch[key]={total:0,count:0,names:{},cats:{}});o.total+=g.valor;o.count++;o.names[disp]=(o.names[disp]||0)+1;o.cats[g.categoria]=(o.cats[g.categoria]||0)+g.valor;});
+  const merch=Object.values(byMerch).map(o=>{const name=Object.entries(o.names).sort((a,b)=>b[1]-a[1]||a[0].length-b[0].length)[0][0];const topCat=Object.entries(o.cats).sort((a,b)=>b[1]-a[1])[0][0];return {name,total:o.total,count:o.count,em:cat(topCat).em,cor:cat(topCat).cor};}).sort((a,b)=>b.total-a.total);
+  if(!merch.length){lugList.innerHTML='<div class="chempty">Sem gastos avulsos em '+monthShort(view.month)+'.<br>Importa teu extrato que cada lugar vira uma linha aqui — você vê na hora onde mais voltou.</div>';document.getElementById('lugaresSub').textContent='teus lugares do mês';}
+  else{
+    const top=merch.slice(0,8);const maxv=top[0].total;
+    const rep=merch.filter(m=>m.count>=2).sort((a,b)=>b.count-a.count)[0];
+    const ins=rep?('Você mais voltou em <b>'+esc(rep.name)+'</b> — '+rep.count+'× neste mês, '+fmt(rep.total)+' no total. Lugar que repete vira hábito, e é no hábito que o dinheiro escorre.'):'Cada linha é um destino do teu dinheiro no mês. Os de cima são onde mais pesou.';
+    lugList.innerHTML='<div class="cb-insight">'+ins+'</div>'+top.map((m,i)=>`<div class="cbar">
+        <div class="cb-top"><span class="cb-rank">${i+1}</span><span class="cb-em">${m.em}</span><span class="cb-nm">${esc(m.name)}</span>${m.count>1?'<span class="cb-ct">'+m.count+'×</span>':''}<span class="cb-vl">${fmt(m.total)}</span></div>
+        <div class="cb-track"><span class="cb-fill" style="width:${(m.total/maxv*100).toFixed(1)}%;background:${m.cor}"></span></div>
+      </div>`).join('');
+    document.getElementById('lugaresSub').textContent=merch.length+(merch.length===1?' lugar em ':' lugares em ')+monthLabel(view.month);
+  }
+
+  // ---- maiores gastos individuais do mês ----
+  const topList=document.getElementById('topList');
+  const bigs=d.avulsos.slice().sort((a,b)=>b.valor-a.valor).slice(0,5);
+  if(!bigs.length)topList.innerHTML='<div class="chempty">Sem gastos avulsos ainda neste mês.</div>';
+  else{const maxb=bigs[0].valor;topList.innerHTML=bigs.map((g,i)=>{const c=cat(g.categoria);return `<div class="cbar">
+      <div class="cb-top"><span class="cb-rank">${i+1}</span><span class="cb-em">${c.em}</span><span class="cb-nm">${esc(g.nota||c.nome)}</span><span class="cb-pc">${dayLabel(g.data)}</span><span class="cb-vl">${fmt(g.valor)}</span></div>
+      <div class="cb-track"><span class="cb-fill" style="width:${(g.valor/maxb*100).toFixed(1)}%;background:${c.cor}"></span></div>
+    </div>`;}).join('');}
 
   // séries 6 meses
   const months=monthsBack(view.month,6);const labels=months.map(monthShort);
@@ -1057,9 +1099,11 @@ function dedupe(){
 let toastT;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2300);}
 
 /* ================= IMPORTAR DO BANCO ================= */
-const SOB_PROMPT=`Você é meu assistente financeiro pessoal. Vou te enviar um print (captura de tela) do extrato do meu banco. Leia a imagem com atenção e extraia TODAS as transações visíveis.
+const SOB_PROMPT=`Você é meu assistente financeiro pessoal. Vou te enviar o extrato do meu banco — pode ser PDF ou print, com uma ou várias páginas, um ou mais cartões/contas. Leia com MÁXIMA atenção e extraia TODAS as transações, sem exceção.
 
-Para cada transação identifique: a data, o valor e se é SAÍDA (gasto) ou ENTRADA (recebimento). Classifique cada gasto na categoria mais provável a partir da descrição. Entradas que pareçam plantão, salário ou honorário médico, lance como plantão recebido.
+REGRA DE OURO: os valores têm que bater exatamente com a minha fatura/extrato, até o centavo. Não arredonde, não estime, não invente e não pule linha. Se um número estiver borrado ou ambíguo, prefira deixar de fora a chutar.
+
+Para cada transação identifique a data, o valor e se é SAÍDA (gasto) ou ENTRADA (recebimento). Classifique cada gasto na categoria mais provável pela descrição. Entradas que pareçam plantão, salário, honorário médico ou repasse de clínica, lance como entrada (plantão recebido).
 
 Categorias válidas (use exatamente estes códigos):
 comida, transp, casa, saude, estudo, lazer, assina, cartao, reserva, outros
@@ -1072,19 +1116,29 @@ P|AAAA-MM-DD|valor|origem|recebido
 C|AAAA-MM|categoria|valor_da_parcela|num_parcelas|descrição
 F|AAAA-MM|categoria|valor_mensal|dia_vencimento|nome
 
-Regras:
-- G = gasto avulso (saída única, à vista). P = plantão ou qualquer entrada.
-- C = COMPRA PARCELADA. Use SEMPRE que aparecer "Parcela X de N". Lance como UMA única linha C (nunca vários G) — o app projeta as parcelas seguintes sozinho.
-  - AAAA-MM = mês da 1ª parcela. Se a tela mostrar "Parcela 2 de N", volte 1 mês a partir da data exibida; "3 de N", volte 2; e assim por diante. Se aparecer a data original da compra, use o mês dela.
-  - valor_da_parcela = valor de UMA parcela. num_parcelas = o N (total).
-  - Se a MESMA compra parcelada aparecer em prints de meses diferentes ("1 de 3" num, "2 de 3" noutro), gere a linha C só UMA vez. Não repita.
-- F = gasto fixo recorrente (aluguel, internet, mensalidade, assinatura tipo Netflix/Spotify/YouTube/Prime). Uma linha por gasto, no mês em que começa. dia_vencimento = 0 se não souber. Só use F com certeza de que repete todo mês; na dúvida, use G.
+COMO LER (vale para qualquer extrato):
+- Percorra TODAS as páginas, inclusive as de continuação. Numa fatura, os gastos vêm agrupados por seções (Restaurantes, Saúde, Serviços, Supermercados, Vestuário, Viagens, Compras parceladas, Outros lançamentos...). Pegue cada linha de TODAS as seções.
+- Use a data DA TRANSAÇÃO (o dia/mês ao lado da descrição), nunca a data de lançamento/postagem.
+- Em conta corrente: "Compra com Cartão", "Pix - Enviado", "Saque" e débitos em geral são GASTO (G). "Pix - Recebido", "TED recebida", depósito e créditos em geral são ENTRADA (P).
+- CAPTURE TODOS OS ENCARGOS como gasto, categoria "cartao": IOF, juros, juros de mora, multa por atraso, encargos do rotativo. Eles contam no total e não podem sumir.
+
+IGNORE (não são transação): saldo, saldo anterior, limite, rendimento, "BB Rende Fácil"/aplicação ou resgate automático, "pagamento de fatura"/"pagamento efetuado"/"Pagto cartão crédito"/"PGT CARTAO", QR code, código de barras, linha digitável, blocos informativos de CET/juros, e anuidade quando vier junto de um desconto que a zera (nesse caso não lance nenhum dos dois).
+
+PARCELAS (C) — atenção redobrada:
+- Use SEMPRE que aparecer "Parcela X de N" ou "PARC 0X/N". Lance UMA única linha C por compra (nunca vários G); o app projeta as parcelas seguintes sozinho.
+- AAAA-MM = mês da 1ª parcela. Em fatura, a data que aparece na linha da parcela costuma ser a DATA ORIGINAL DA COMPRA — use o mês dela. Se só aparecer a parcela atual (ex.: "2 de N"), volte 1 mês a partir da data exibida; "3 de N", volte 2; e assim por diante.
+- valor_da_parcela = valor de UMA parcela. num_parcelas = o N (total).
+- Se a MESMA compra parcelada aparecer em faturas de meses diferentes ("01/03" numa, "02/03" noutra), gere a linha C só UMA vez. Não repita.
+
+FIXOS (F): só para recorrência mensal certa (aluguel, internet, mensalidade, assinatura tipo Netflix/Spotify/YouTube/Prime). Uma linha, no mês em que começa. dia_vencimento = 0 se não souber. Na dúvida, use G.
+
+FORMATO:
 - Valor com ponto decimal e duas casas (ex.: 45.90). Sem "R$" e sem separador de milhar.
 - Uma transação por linha. Não use o caractere barra-vertical dentro da descrição.
-- Na dúvida da categoria, use "outros".
-- Use a data que aparece na transação. Se faltar o ano, use o ano atual.
-- Ignore saldo, limite, rendimento, "pagamento de fatura"/"pagamento efetuado" e qualquer linha que não seja transação.
-- Não invente nada: extraia só o que está na imagem.`;
+- Se faltar o ano, use o ano atual. Na dúvida da categoria, use "outros".
+- Duas compras iguais no mesmo dia, mesmo valor e mesmo lugar são DUAS transações: mantenha as duas (ponha "(2)" no fim da segunda descrição para diferenciar).
+
+CONFERÊNCIA (faça antes de responder): some os gastos de cada cartão e compare com o "Total"/"Compras nacionais" + encargos impressos na fatura. Se não bater, revise a leitura até bater. Só então responda — com o bloco e nada mais.`;
 
 let parsed=null;
 function openImport(){document.getElementById('scrim3').classList.add('show');document.getElementById('sheet3').classList.add('show');document.body.style.overflow='hidden';document.getElementById('sheet3').scrollTop=0;}
@@ -1092,7 +1146,7 @@ function closeImport(){document.getElementById('scrim3').classList.remove('show'
 
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);}
 function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).catch(()=>fallbackCopy(t));}else fallbackCopy(t);}
-function copyPrompt(){copyText(SOB_PROMPT);toast('📋 Prompt copiado! Cola no Claude com o print.');}
+function copyPrompt(){copyText(SOB_PROMPT);toast('📋 Prompt copiado! Cola na IA junto com o extrato.');}
 
 function parseNum(s){if(s==null)return NaN;s=String(s).replace(/[^\d.,-]/g,'').trim();if(!s)return NaN;if(s.indexOf('.')>=0&&s.indexOf(',')>=0)s=s.replace(/\./g,'').replace(',','.');else if(s.indexOf(',')>=0)s=s.replace(',','.');return parseFloat(s);}
 function normDate(s){if(!s)return null;s=String(s).trim();let m;if(m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');if(m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/)){let y=m[3];if(y.length===2)y='20'+y;return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');}if(m=s.match(/^(\d{1,2})\/(\d{1,2})$/)){const y=new Date().getFullYear();return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');}return null;}
@@ -1147,7 +1201,7 @@ function analisarCodigo(){
   const totG=newG.reduce((a,g)=>a+g.valor,0),totP=newP.reduce((a,p)=>a+p.valor,0);
   const dupCount=(r.gastos.length-newG.length)+(r.plantoes.length-newP.length)+(r.parcelas.length-newC.length)+(r.fixos.length-newF.length);
   const anyParsed=r.gastos.length||r.plantoes.length||r.parcelas.length||r.fixos.length;
-  if(!anyParsed){box.innerHTML='<div class="warnbox"><b>Não achei lançamentos válidos.</b>Confere se colou o código que o Claude gerou — ele começa com #SOB1.</div>';btn.disabled=true;btn.textContent='Importar';return;}
+  if(!anyParsed){box.innerHTML='<div class="warnbox"><b>Não achei lançamentos válidos.</b>Confere se colou o código que a IA gerou — ele começa com #SOB1.</div>';btn.disabled=true;btn.textContent='Importar';return;}
   let html='<div class="psum">';
   html+='<div class="pc out"><div class="pn">'+newG.length+'</div><div class="pl">gastos</div></div>';
   html+='<div class="pc"><div class="pn">'+(newC.length+newF.length)+'</div><div class="pl">parc/fixo</div></div>';
