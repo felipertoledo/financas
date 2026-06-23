@@ -380,8 +380,8 @@
     .qa button,.bigimport,.addmini,.iconbtn,.setbtn,.savebtn,.copyp,.comp .check,.closeb,.chip{cursor:pointer;}
 
     /* ---- sheet vira MODAL centralizado ---- */
-    .sheet{left:50%;right:auto;top:50%;bottom:auto;width:480px;max-width:92vw;max-height:88dvh;border-radius:22px;transform:translate(-50%,-46%) scale(.97);box-shadow:0 26px 70px -22px rgba(26,23,20,.5);}
-    .sheet.show{transform:translate(-50%,-50%) scale(1);}
+    .sheet{left:50%;right:auto;top:50%;bottom:auto;width:480px;max-width:92vw;max-height:88dvh;border-radius:22px;transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;pointer-events:none;transition:transform .28s cubic-bezier(.2,.85,.25,1),opacity .22s ease,visibility .28s;box-shadow:0 26px 70px -22px rgba(26,23,20,.5);}
+    .sheet.show{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible;pointer-events:auto;}
     .grab{display:none;}
     .amount.focusable{cursor:text;}
     .keypad button{padding:13px 0;font-size:20px;}
@@ -1104,7 +1104,8 @@ function setType(t,reset){
   }
   renderChips();renderQuickLocs();updateAmount();
 }
-function showSheet(){document.getElementById('scrim').classList.add('show');document.getElementById('sheet').classList.add('show');document.body.style.overflow='hidden';document.getElementById('sheet').scrollTop=0;}
+function closeAllModals(){['scrim','scrim2','scrim3','sheet','sheet2','sheet3'].forEach(id=>{var el=document.getElementById(id);if(el)el.classList.remove('show');});}
+function showSheet(){closeAllModals();document.getElementById('scrim').classList.add('show');document.getElementById('sheet').classList.add('show');document.body.style.overflow='hidden';document.getElementById('sheet').scrollTop=0;}
 function closeSheet(){document.getElementById('scrim').classList.remove('show');document.getElementById('sheet').classList.remove('show');document.body.style.overflow='';}
 
 function renderChips(){document.getElementById('chips').innerHTML=CATS.map(c=>`<button class="chip ${selCat===c.id?'sel':''}" onclick="pickCat('${c.id}')"><span class="em">${c.em}</span>${c.nome}</button>`).join('');}
@@ -1177,7 +1178,7 @@ function praise(){const st=streak()+1;return st>=3?`🔥 ${st} dias seguidos ano
 document.getElementById('fab').onclick=()=>openSheet('gasto');
 
 /* ================= AJUSTES ================= */
-document.getElementById('btnAjustes').onclick=()=>{document.getElementById('scrim2').classList.add('show');document.getElementById('sheet2').classList.add('show');document.body.style.overflow='hidden';refreshSal();};
+document.getElementById('btnAjustes').onclick=()=>{closeAllModals();document.getElementById('scrim2').classList.add('show');document.getElementById('sheet2').classList.add('show');document.body.style.overflow='hidden';refreshSal();};
 function closeAjustes(){document.getElementById('scrim2').classList.remove('show');document.getElementById('sheet2').classList.remove('show');document.body.style.overflow='';}
 function refreshSal(){document.getElementById('salBtn').textContent=S.config.salario>0?fmt(S.config.salario):'Definir';}
 function setSalario(){const cur=S.config.salario||0;const r=prompt('Quanto você quer se "pagar" de salário base por mês? (só números, ex.: 8000)',cur||'');if(r===null)return;const n=parseFloat(String(r).replace(/\./g,'').replace(',','.'));if(isNaN(n)||n<0){toast('Valor inválido');return;}S.config.salario=n;persist();refreshSal();render();toast('✓ Salário base: '+fmt(n));}
@@ -1244,7 +1245,7 @@ FORMATO:
 CONFERÊNCIA (faça antes de responder): some os gastos de cada cartão e compare com o "Total"/"Compras nacionais" + encargos impressos na fatura. Se não bater, revise a leitura até bater. Só então responda — com o bloco e nada mais.`;
 
 let parsed=null;
-function openImport(){document.getElementById('scrim3').classList.add('show');document.getElementById('sheet3').classList.add('show');document.body.style.overflow='hidden';document.getElementById('sheet3').scrollTop=0;}
+function openImport(){closeAllModals();document.getElementById('scrim3').classList.add('show');document.getElementById('sheet3').classList.add('show');document.body.style.overflow='hidden';document.getElementById('sheet3').scrollTop=0;}
 function closeImport(){document.getElementById('scrim3').classList.remove('show');document.getElementById('sheet3').classList.remove('show');document.body.style.overflow='';}
 
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);}
