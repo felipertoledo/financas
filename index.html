@@ -306,6 +306,26 @@
 
   @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.05ms!important;}}
   @media (min-width:560px){.app{border-left:1.5px solid var(--line);border-right:1.5px solid var(--line);}}
+  /* lugares clicáveis + reclassificar */
+  button.cbar{font:inherit;color:inherit;background:transparent;border:0;width:100%;text-align:left;display:block;-webkit-appearance:none;appearance:none;padding:0;}
+  .cbar.clk{cursor:pointer;border-radius:10px;transition:background .12s;}
+  .cbar.clk:hover{background:rgba(26,23,20,.045);}
+  .cbar.clk:active{transform:scale(.995);}
+  .cbar .cb-edit{margin-left:1px;color:var(--ink-soft);font-size:14px;opacity:.5;flex:0 0 auto;}
+  .lugmore{display:block;width:100%;text-align:center;padding:10px;margin-top:4px;font-family:var(--body);font-size:12.5px;font-weight:700;color:var(--azul);background:transparent;border:0;cursor:pointer;letter-spacing:.01em;}
+  .lugmore:hover{text-decoration:underline;}
+  /* editor de estabelecimento / grupo */
+  .merchsub{font-size:13px;color:var(--ink-soft);line-height:1.55;margin:2px 0 14px;}
+  .mglabel{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:700;margin:4px 0 8px;}
+  .newgrpbtn{margin-top:14px;width:100%;padding:11px;border-radius:12px;border:1.5px dashed var(--line-strong);background:transparent;font-family:var(--body);font-weight:600;font-size:13.5px;color:var(--ink-soft);cursor:pointer;transition:border-color .12s,color .12s;}
+  .newgrpbtn:hover{border-color:var(--azul);color:var(--azul);}
+  .colorinput{width:100%;height:46px;padding:3px;border:1.5px solid var(--line-strong);border-radius:12px;background:var(--paper-2);cursor:pointer;}
+  /* expandir gráfico */
+  .cardexp{float:right;width:27px;height:27px;line-height:1;border-radius:8px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink-soft);font-size:13px;cursor:pointer;margin-top:-3px;transition:background .12s,color .12s,border-color .12s;}
+  .cardexp:hover{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  #chartBig svg{max-height:58vh;}
+  #chartBig .chsub,#chartBig .ch-legend{margin-bottom:8px;}
+
   /* elementos exclusivos do desktop ficam ocultos no mobile */
   .side-brand,.side-actions{display:none;}
   .kbdhint{display:none;font-size:11.5px;color:var(--ink-soft);text-align:center;margin:8px 0 2px;}
@@ -382,6 +402,8 @@
     /* ---- sheet vira MODAL centralizado ---- */
     .sheet{left:50%;right:auto;top:50%;bottom:auto;width:480px;max-width:92vw;max-height:88dvh;border-radius:22px;transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;pointer-events:none;transition:transform .28s cubic-bezier(.2,.85,.25,1),opacity .22s ease,visibility .28s;box-shadow:0 26px 70px -22px rgba(26,23,20,.5);}
     .sheet.show{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible;pointer-events:auto;}
+    #sheetChart{width:780px;max-width:94vw;}
+    #sheetMerch{width:520px;}
     .grab{display:none;}
     .amount.focusable{cursor:text;}
     .keypad button{padding:13px 0;font-size:20px;}
@@ -672,6 +694,33 @@
   <div class="savebar"><button class="savebtn ink" id="importBtn" onclick="confirmImport()" disabled>Importar</button></div>
 </div>
 
+<!-- EDITAR ESTABELECIMENTO -->
+<div class="scrim" id="scrimMerch" onclick="closeMerch()"></div>
+<div class="sheet" id="sheetMerch" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div class="shead"><h3 id="merchName">Lugar</h3><button class="closeb" onclick="closeMerch()">Fechar ✕</button></div>
+  <p class="merchsub" id="merchSub"></p>
+  <div class="mglabel">Reclassificar para</div>
+  <div class="chips" id="merchChips"></div>
+  <button class="newgrpbtn" onclick="toggleNewGroup()">＋ Criar novo grupo</button>
+  <div id="merchNewGroup" style="display:none;">
+    <div class="field two">
+      <div><label>Nome do grupo</label><input type="text" id="mgNome" placeholder="Ex.: Bar do Lucas" autocomplete="off"></div>
+      <div><label>Emoji</label><input type="text" id="mgEmoji" placeholder="🍺" maxlength="4"></div>
+    </div>
+    <div class="field"><label>Cor do grupo</label><input type="color" id="mgColor" value="#7A4FB0" class="colorinput"></div>
+    <button class="savebtn" onclick="createGroup()">Criar e aplicar a este lugar</button>
+  </div>
+</div>
+
+<!-- GRÁFICO EXPANDIDO -->
+<div class="scrim" id="scrimChart" onclick="closeChart()"></div>
+<div class="sheet" id="sheetChart" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div class="shead"><h3 id="chartBigTitle">Gráfico</h3><button class="closeb" onclick="closeChart()">Fechar ✕</button></div>
+  <div id="chartBig"></div>
+</div>
+
 <!-- LOGIN / SINCRONIZAÇÃO -->
 <div class="scrim" id="loginOverlay" style="display:none;opacity:1;pointer-events:auto;backdrop-filter:none;background:radial-gradient(120% 60% at 50% -10%, rgba(224,162,26,.12), transparent 60%),var(--paper);align-items:center;justify-content:center;padding:24px;z-index:200;">
   <div style="max-width:360px;width:100%;">
@@ -729,11 +778,12 @@ const LESSONS=[
 let S=load();
 let view={month:ymNow()};
 let sheetType='gasto', selCat=null, pad='', plantStatus='recebido', editingId=null, editingType=null;
+let lugExpanded=false, merchEditKey=null, merchEditName='';
 
 function load(){
   let d=null;try{d=JSON.parse(localStorage.getItem(KEY));}catch(e){}
   if(!d)d={};
-  return {gastos:d.gastos||[],plantoes:d.plantoes||[],fixos:d.fixos||[],parcelas:d.parcelas||[],pagos:d.pagos||{},config:Object.assign({salario:0},d.config||{}),v:2};
+  return {gastos:d.gastos||[],plantoes:d.plantoes||[],fixos:d.fixos||[],parcelas:d.parcelas||[],pagos:d.pagos||{},config:Object.assign({salario:0},d.config||{}),cats:d.cats||[],rules:d.rules||{},v:2};
 }
 let _applyingRemote=false;
 function persistLocalOnly(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -741,7 +791,7 @@ function persist(){persistLocalOnly();if(window.SOBPush&&!_applyingRemote){try{w
 window.SOBGetState=()=>S;
 window.SOBApplyRemote=function(data){
   if(!data)return;
-  S={gastos:data.gastos||[],plantoes:data.plantoes||[],fixos:data.fixos||[],parcelas:data.parcelas||[],pagos:data.pagos||{},config:Object.assign({salario:0},data.config||{}),v:2};
+  S={gastos:data.gastos||[],plantoes:data.plantoes||[],fixos:data.fixos||[],parcelas:data.parcelas||[],pagos:data.pagos||{},config:Object.assign({salario:0},data.config||{}),cats:data.cats||[],rules:data.rules||{},v:2};
   _applyingRemote=true;
   try{render();if(typeof refreshSal==='function')refreshSal();}finally{_applyingRemote=false;}
 };
@@ -753,7 +803,8 @@ function ym(iso){return iso.slice(0,7);}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function fmt(v){return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 function fmtShort(v){const a=Math.abs(v);if(a>=1000)return 'R$ '+(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'k';return 'R$ '+v.toLocaleString('pt-BR',{maximumFractionDigits:0});}
-function cat(id){return CATS.find(c=>c.id===id)||CATS[CATS.length-1];}
+function allCats(){return CATS.concat(S.cats||[]);}
+function cat(id){return allCats().find(c=>c.id===id)||CATS[CATS.length-1];}
 function monthLabel(m){const[y,mo]=m.split('-').map(Number);return new Date(y,mo-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});}
 function monthShort(m){const[y,mo]=m.split('-').map(Number);return new Date(y,mo-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.','');}
 function shiftYm(m,d){let[y,mo]=m.split('-').map(Number);mo+=d;while(mo<1){mo+=12;y--;}while(mo>12){mo-=12;y++;}return y+'-'+String(mo).padStart(2,'0');}
@@ -918,7 +969,7 @@ function lineChart(labels,series){
   for(let k=0;k<=steps;k++){const val=min+(max-min)*k/steps;const yy=Y(val);g+=`<line x1="${pl}" y1="${yy.toFixed(1)}" x2="${W-pr}" y2="${yy.toFixed(1)}" stroke="#D8CCB4" stroke-width="1"/><text x="2" y="${(yy+3).toFixed(1)}" font-size="8.5" fill="#9a8f78" font-family="Space Mono,monospace">${shortAxis(val)}</text>`;}
   if(min<0){const yz=Y(0);g+=`<line x1="${pl}" y1="${yz}" x2="${W-pr}" y2="${yz}" stroke="#C3B69A" stroke-width="1.5"/>`;}
   let xl='';labels.forEach((lb,i)=>{xl+=`<text x="${X(i).toFixed(1)}" y="${H-7}" font-size="9.5" fill="#5A5247" text-anchor="middle" font-family="Archivo,sans-serif">${lb}</text>`;});
-  let ln='';series.forEach(s=>{const pts=s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');ln+=`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="${s.w||2.4}" stroke-linejoin="round" stroke-linecap="round"/>`;const li=s.data.length-1;ln+=`<circle cx="${X(li).toFixed(1)}" cy="${Y(s.data[li]).toFixed(1)}" r="3.2" fill="${s.color}"/>`;});
+  let ln='';series.forEach(s=>{const pts=s.data.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');ln+=`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="${s.w||2.4}" stroke-linejoin="round" stroke-linecap="round"/>`;const li=s.data.length-1;ln+=`<circle cx="${X(li).toFixed(1)}" cy="${Y(s.data[li]).toFixed(1)}" r="3.2" fill="${s.color}"/>`;s.data.forEach((v,i)=>{ln+=`<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="8" fill="transparent" style="pointer-events:all"><title>${(s.name?esc(s.name)+' · ':'')}${labels[i]}: ${fmt(v)}</title></circle>`;});});
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" role="img">${g}${xl}${ln}</svg>`;
 }
 function donut(items){
@@ -938,7 +989,7 @@ function barsStacked(labels,segsArr){
   let bars='';
   segsArr.forEach((segs,i)=>{
     const cx=pl+slot*i+slot/2;const x=cx-bw/2;let acc=0;const tot=segs.reduce((a,s)=>a+s.v,0);
-    segs.forEach(s=>{if(s.v<=0)return;const h=innerH*s.v/max;const y=pt+innerH-(acc+s.v)/max*innerH;bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" fill="${s.color}" rx="2"/>`;acc+=s.v;});
+    segs.forEach(s=>{if(s.v<=0)return;const h=innerH*s.v/max;const y=pt+innerH-(acc+s.v)/max*innerH;bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" fill="${s.color}" rx="2"><title>${(s.label?s.label+': ':'')}${fmt(s.v)}</title></rect>`;acc+=s.v;});
     if(tot>0)bars+=`<text x="${cx.toFixed(1)}" y="${(pt+innerH-tot/max*innerH-5).toFixed(1)}" font-size="8.5" fill="#5A5247" text-anchor="middle" font-family="Space Mono,monospace">${shortAxis(tot)}</text>`;
     bars+=`<text x="${cx.toFixed(1)}" y="${H-7}" font-size="9.5" fill="#5A5247" text-anchor="middle" font-family="Archivo,sans-serif">${labels[i]}</text>`;
   });
@@ -965,17 +1016,17 @@ function renderAnalise(){
   // ---- onde você mais gasta: por lugar (mês atual) ----
   const lugList=document.getElementById('lugaresList');
   const byMerch={};
-  d.avulsos.forEach(g=>{const disp=((g.nota||'').replace(/\s*\(\d+\)\s*$/,'').trim())||cat(g.categoria).nome;const key=normMerch(disp)||cat(g.categoria).nome;const o=byMerch[key]||(byMerch[key]={total:0,count:0,names:{},cats:{}});o.total+=g.valor;o.count++;o.names[disp]=(o.names[disp]||0)+1;o.cats[g.categoria]=(o.cats[g.categoria]||0)+g.valor;});
-  const merch=Object.values(byMerch).map(o=>{const name=Object.entries(o.names).sort((a,b)=>b[1]-a[1]||a[0].length-b[0].length)[0][0];const topCat=Object.entries(o.cats).sort((a,b)=>b[1]-a[1])[0][0];return {name,total:o.total,count:o.count,em:cat(topCat).em,cor:cat(topCat).cor};}).sort((a,b)=>b.total-a.total);
+  d.avulsos.forEach(g=>{const hasNota=!!(g.nota&&g.nota.trim());const disp=((g.nota||'').replace(/\s*\(\d+\)\s*$/,'').trim())||cat(g.categoria).nome;const key=normMerch(disp)||cat(g.categoria).nome.toLowerCase();const o=byMerch[key]||(byMerch[key]={key,total:0,count:0,names:{},cats:{},hasNota:false});o.total+=g.valor;o.count++;o.hasNota=o.hasNota||hasNota;o.names[disp]=(o.names[disp]||0)+1;o.cats[g.categoria]=(o.cats[g.categoria]||0)+g.valor;});
+  const merch=Object.values(byMerch).map(o=>{const name=Object.entries(o.names).sort((a,b)=>b[1]-a[1]||a[0].length-b[0].length)[0][0];const topCat=Object.entries(o.cats).sort((a,b)=>b[1]-a[1])[0][0];return {key:o.key,name,total:o.total,count:o.count,em:cat(topCat).em,cor:cat(topCat).cor,hasNota:o.hasNota};}).sort((a,b)=>b.total-a.total);
+  window.__lugMerch=merch;
   if(!merch.length){lugList.innerHTML='<div class="chempty">Sem gastos avulsos em '+monthShort(view.month)+'.<br>Importa teu extrato que cada lugar vira uma linha aqui — você vê na hora onde mais voltou.</div>';document.getElementById('lugaresSub').textContent='teus lugares do mês';}
   else{
-    const top=merch.slice(0,8);const maxv=top[0].total;
+    const maxv=merch[0].total;
+    const shown=lugExpanded?merch:merch.slice(0,8);
     const rep=merch.filter(m=>m.count>=2).sort((a,b)=>b.count-a.count)[0];
-    const ins=rep?('Você mais voltou em <b>'+esc(rep.name)+'</b> — '+rep.count+'× neste mês, '+fmt(rep.total)+' no total. Lugar que repete vira hábito, e é no hábito que o dinheiro escorre.'):'Cada linha é um destino do teu dinheiro no mês. Os de cima são onde mais pesou.';
-    lugList.innerHTML='<div class="cb-insight">'+ins+'</div>'+top.map((m,i)=>`<div class="cbar">
-        <div class="cb-top"><span class="cb-rank">${i+1}</span><span class="cb-em">${m.em}</span><span class="cb-nm">${esc(m.name)}</span>${m.count>1?'<span class="cb-ct">'+m.count+'×</span>':''}<span class="cb-vl">${fmt(m.total)}</span></div>
-        <div class="cb-track"><span class="cb-fill" style="width:${(m.total/maxv*100).toFixed(1)}%;background:${m.cor}"></span></div>
-      </div>`).join('');
+    const ins=rep?('Você mais voltou em <b>'+esc(rep.name)+'</b> — '+rep.count+'× neste mês, '+fmt(rep.total)+'. Toque num lugar pra <b>reclassificar</b> ou criar um grupo: muda todos os lançamentos dele de uma vez.'):'Toque num lugar pra reclassificar ou criar um grupo — os de cima são onde mais pesou.';
+    const rowHtml=(m,i)=>{const inner=`<div class="cb-top"><span class="cb-rank">${i+1}</span><span class="cb-em">${m.em}</span><span class="cb-nm">${esc(m.name)}</span>${m.count>1?'<span class="cb-ct">'+m.count+'×</span>':''}<span class="cb-vl">${fmt(m.total)}</span>${m.hasNota?'<span class="cb-edit">⌄</span>':''}</div><div class="cb-track"><span class="cb-fill" style="width:${(m.total/maxv*100).toFixed(1)}%;background:${m.cor}"></span></div>`;return m.hasNota?`<button class="cbar clk" onclick="openMerch('${m.key.replace(/'/g,"\\'")}')">${inner}</button>`:`<div class="cbar">${inner}</div>`;};
+    lugList.innerHTML='<div class="cb-insight">'+ins+'</div>'+shown.map(rowHtml).join('')+(merch.length>8?'<button class="lugmore" onclick="lugExpanded=!lugExpanded;renderAnalise()">'+(lugExpanded?'▴ Ver menos':'▾ Ver todos os '+merch.length+' lugares')+'</button>':'');
     document.getElementById('lugaresSub').textContent=merch.length+(merch.length===1?' lugar em ':' lugares em ')+monthLabel(view.month);
   }
 
@@ -1006,7 +1057,7 @@ function renderAnalise(){
 
   // compromissos à frente (6 meses): fixos + parcelas já comprometidos
   const fwd=monthsForward(view.month,6);
-  const segsArr=fwd.map(m=>{const md=monthData(m);return [{v:md.sFixoTot,color:'#8A6E08'},{v:md.sParcTot,color:'#3B7DD8'}];});
+  const segsArr=fwd.map(m=>{const md=monthData(m);return [{v:md.sFixoTot,color:'#8A6E08',label:'Fixos'},{v:md.sParcTot,color:'#3B7DD8',label:'Parcelas'}];});
   const temCompromisso=segsArr.some(s=>s[0].v>0||s[1].v>0);
   document.getElementById('chartFuturo').innerHTML=temCompromisso
     ? barsStacked(fwd.map(monthShort),segsArr)
@@ -1104,11 +1155,11 @@ function setType(t,reset){
   }
   renderChips();renderQuickLocs();updateAmount();
 }
-function closeAllModals(){['scrim','scrim2','scrim3','sheet','sheet2','sheet3'].forEach(id=>{var el=document.getElementById(id);if(el)el.classList.remove('show');});}
+function closeAllModals(){['scrim','scrim2','scrim3','scrimMerch','scrimChart','sheet','sheet2','sheet3','sheetMerch','sheetChart'].forEach(id=>{var el=document.getElementById(id);if(el)el.classList.remove('show');});}
 function showSheet(){closeAllModals();document.getElementById('scrim').classList.add('show');document.getElementById('sheet').classList.add('show');document.body.style.overflow='hidden';document.getElementById('sheet').scrollTop=0;}
 function closeSheet(){document.getElementById('scrim').classList.remove('show');document.getElementById('sheet').classList.remove('show');document.body.style.overflow='';}
 
-function renderChips(){document.getElementById('chips').innerHTML=CATS.map(c=>`<button class="chip ${selCat===c.id?'sel':''}" onclick="pickCat('${c.id}')"><span class="em">${c.em}</span>${c.nome}</button>`).join('');}
+function renderChips(){document.getElementById('chips').innerHTML=allCats().map(c=>`<button class="chip ${selCat===c.id?'sel':''}" onclick="pickCat('${c.id}')"><span class="em">${c.em}</span>${c.nome}</button>`).join('');}
 function pickCat(id){selCat=id;renderChips();updateAmount();}
 function renderQuickLocs(){document.getElementById('quicklocs').innerHTML=QUICK_LOCS.map(l=>`<button onclick="document.getElementById('fLocal').value='${l}'">${l}</button>`).join('');}
 function setStatus(s){plantStatus=s;document.getElementById('stRec').classList.toggle('on',s==='recebido');const p=document.getElementById('stPendBtn');p.classList.toggle('on',s==='pendente');p.classList.toggle('pend',s==='pendente');}
@@ -1183,8 +1234,8 @@ function closeAjustes(){document.getElementById('scrim2').classList.remove('show
 function refreshSal(){document.getElementById('salBtn').textContent=S.config.salario>0?fmt(S.config.salario):'Definir';}
 function setSalario(){const cur=S.config.salario||0;const r=prompt('Quanto você quer se "pagar" de salário base por mês? (só números, ex.: 8000)',cur||'');if(r===null)return;const n=parseFloat(String(r).replace(/\./g,'').replace(',','.'));if(isNaN(n)||n<0){toast('Valor inválido');return;}S.config.salario=n;persist();refreshSal();render();toast('✓ Salário base: '+fmt(n));}
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='soberania-backup-'+todayISO()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('💾 Backup baixado');}
-function importData(e){const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const dd=JSON.parse(rd.result);if(!dd.gastos&&!dd.plantoes&&!dd.fixos)throw 0;S={gastos:dd.gastos||[],plantoes:dd.plantoes||[],fixos:dd.fixos||[],parcelas:dd.parcelas||[],pagos:dd.pagos||{},config:Object.assign({salario:0},dd.config||{}),v:2};persist();render();refreshSal();toast('✓ Backup restaurado');}catch(err){toast('⚠️ Arquivo inválido');}};rd.readAsText(f);e.target.value='';}
-function wipe(){if(!confirm('Isso apaga TODOS os teus lançamentos deste aparelho. Sem volta. Continuar?'))return;S={gastos:[],plantoes:[],fixos:[],parcelas:[],pagos:{},config:{salario:0},v:2};persist();render();refreshSal();closeAjustes();toast('Tudo zerado');}
+function importData(e){const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const dd=JSON.parse(rd.result);if(!dd.gastos&&!dd.plantoes&&!dd.fixos)throw 0;S={gastos:dd.gastos||[],plantoes:dd.plantoes||[],fixos:dd.fixos||[],parcelas:dd.parcelas||[],pagos:dd.pagos||{},config:Object.assign({salario:0},dd.config||{}),cats:dd.cats||[],rules:dd.rules||{},v:2};persist();render();refreshSal();toast('✓ Backup restaurado');}catch(err){toast('⚠️ Arquivo inválido');}};rd.readAsText(f);e.target.value='';}
+function wipe(){if(!confirm('Isso apaga TODOS os teus lançamentos deste aparelho. Sem volta. Continuar?'))return;S={gastos:[],plantoes:[],fixos:[],parcelas:[],pagos:{},config:{salario:0},cats:[],rules:{},v:2};persist();render();refreshSal();closeAjustes();toast('Tudo zerado');}
 function dedupe(){
   const norm=s=>(s||'').toString().toLowerCase().trim();
   const near=(a,b)=>Math.abs((a||0)-(b||0))<0.005;
@@ -1248,6 +1299,73 @@ let parsed=null;
 function openImport(){closeAllModals();document.getElementById('scrim3').classList.add('show');document.getElementById('sheet3').classList.add('show');document.body.style.overflow='hidden';document.getElementById('sheet3').scrollTop=0;}
 function closeImport(){document.getElementById('scrim3').classList.remove('show');document.getElementById('sheet3').classList.remove('show');document.body.style.overflow='';}
 
+/* ===== EDITOR DE ESTABELECIMENTO: reclassificar todos + criar grupos ===== */
+function openMerch(key){
+  const m=(window.__lugMerch||[]).find(x=>x.key===key);
+  if(!m)return;
+  merchEditKey=key;merchEditName=m.name;
+  const all=S.gastos.filter(g=>normMerch(g.nota||'')===key);
+  const allTot=all.reduce((a,g)=>a+g.valor,0);
+  document.getElementById('merchName').textContent=m.name;
+  document.getElementById('merchSub').innerHTML='<b>'+all.length+'</b> lançamento'+(all.length===1?'':'s')+' de <b>'+esc(m.name)+'</b> no histórico — '+fmt(allTot)+'. Escolha uma categoria pra reclassificar <b>todos de uma vez</b> (e os próximos imports deste lugar entram já certos).';
+  const grp=document.getElementById('merchNewGroup');grp.style.display='none';
+  document.getElementById('mgNome').value='';document.getElementById('mgEmoji').value='';
+  renderMerchChips();
+  closeAllModals();
+  document.getElementById('scrimMerch').classList.add('show');
+  document.getElementById('sheetMerch').classList.add('show');
+  document.body.style.overflow='hidden';document.getElementById('sheetMerch').scrollTop=0;
+}
+function renderMerchChips(){
+  const all=S.gastos.filter(g=>normMerch(g.nota||'')===merchEditKey);
+  const byc={};all.forEach(g=>byc[g.categoria]=(byc[g.categoria]||0)+1);
+  const cur=Object.entries(byc).sort((a,b)=>b[1]-a[1])[0];const curId=cur?cur[0]:null;
+  document.getElementById('merchChips').innerHTML=allCats().map(c=>`<button class="chip ${c.id===curId?'sel':''}" onclick="applyMerchCat('${c.id}')"><span class="em">${c.em}</span>${c.nome}</button>`).join('');
+}
+function applyMerchCat(catId){
+  if(!merchEditKey)return;
+  let n=0;S.gastos.forEach(g=>{if(normMerch(g.nota||'')===merchEditKey){g.categoria=catId;n++;}});
+  S.rules=S.rules||{};S.rules[merchEditKey]=catId;
+  persist();render();closeMerch();
+  toast('✓ '+n+' lançamento'+(n===1?'':'s')+' de '+merchEditName+' → '+cat(catId).nome);
+}
+function closeMerch(){document.getElementById('scrimMerch').classList.remove('show');document.getElementById('sheetMerch').classList.remove('show');document.body.style.overflow='';}
+function toggleNewGroup(){const el=document.getElementById('merchNewGroup');const open=el.style.display==='none'||!el.style.display;el.style.display=open?'block':'none';if(open)setTimeout(()=>document.getElementById('mgNome').focus(),50);}
+function createGroup(){
+  const nome=document.getElementById('mgNome').value.trim();
+  const em=(document.getElementById('mgEmoji').value.trim()||'🏷️').slice(0,4);
+  const cor=document.getElementById('mgColor').value||'#7A4FB0';
+  if(!nome){toast('Dá um nome pro grupo primeiro');return;}
+  const id='c'+uid();
+  S.cats=S.cats||[];S.cats.push({id,nome,em,cor});
+  persist();
+  applyMerchCat(id);
+}
+
+/* ===== GRÁFICO EXPANDIDO ===== */
+function expandChart(card){
+  const h3=card.querySelector('h3');
+  const title=h3?(h3.childNodes[0]?h3.childNodes[0].textContent:h3.textContent).trim():'Gráfico';
+  const clone=card.cloneNode(true);
+  clone.querySelectorAll('.cardexp').forEach(b=>b.remove());
+  const ch=clone.querySelector('h3');if(ch)ch.remove();
+  document.getElementById('chartBigTitle').textContent=title;
+  document.getElementById('chartBig').innerHTML=clone.innerHTML;
+  closeAllModals();
+  document.getElementById('scrimChart').classList.add('show');
+  document.getElementById('sheetChart').classList.add('show');
+  document.body.style.overflow='hidden';document.getElementById('sheetChart').scrollTop=0;
+}
+function closeChart(){document.getElementById('scrimChart').classList.remove('show');document.getElementById('sheetChart').classList.remove('show');document.body.style.overflow='';}
+function initChartExpand(){
+  document.querySelectorAll('#v-analise .chartcard').forEach(card=>{
+    const h3=card.querySelector('h3');if(!h3||h3.querySelector('.cardexp'))return;
+    const b=document.createElement('button');b.className='cardexp';b.type='button';b.setAttribute('aria-label','Expandir gráfico');b.textContent='⤢';
+    b.onclick=function(e){e.stopPropagation();expandChart(card);};
+    h3.appendChild(b);
+  });
+}
+
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);}
 function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).catch(()=>fallbackCopy(t));}else fallbackCopy(t);}
 function copyPrompt(){copyText(SOB_PROMPT);toast('📋 Prompt copiado! Cola na IA junto com o extrato.');}
@@ -1296,6 +1414,8 @@ function analisarCodigo(){
   const txt=document.getElementById('codeInput').value;const box=document.getElementById('previewBox');const btn=document.getElementById('importBtn');
   if(!txt.trim()){box.innerHTML='';parsed=null;btn.disabled=true;btn.textContent='Importar';return;}
   const r=parseSOB(txt);
+  // aplica regras de estabelecimento salvas (reclassificação automática por padrão)
+  r.gastos.forEach(g=>{const k=normMerch(g.nota||'');if(k&&S.rules&&S.rules[k]&&cat(S.rules[k]))g.categoria=S.rules[k];});
   r.gastos.forEach(g=>g._dup=isDupGasto(g));
   r.plantoes.forEach(p=>p._dup=isDupPlant(p));
   r.parcelas.forEach(p=>p._dup=isDupParc(p));
@@ -1338,6 +1458,7 @@ function confirmImport(){
 renderLessons();
 try{document.getElementById('tutPrompt').textContent=SOB_PROMPT;}catch(e){}
 render();
+try{initChartExpand();}catch(e){}
 </script>
 
 <!-- ================= SINCRONIZAÇÃO (Firebase) ================= -->
@@ -1413,7 +1534,7 @@ async function reconcile(){
   try { cloud = readSnap(await getDoc(refFor(uid))); } catch(e){ console.warn('Sync: falha ao ler nuvem', e); }
   const local = window.SOBGetState ? window.SOBGetState() : null;
   if(!cloud){
-    await pushToCloud(local || {gastos:[],plantoes:[],fixos:[],parcelas:[],pagos:{},config:{salario:0},v:2});
+    await pushToCloud(local || {gastos:[],plantoes:[],fixos:[],parcelas:[],pagos:{},config:{salario:0},cats:[],rules:{},v:2});
   } else {
     const merged = mergeState(local, cloud);
     if(window.SOBApplyRemote) window.SOBApplyRemote(merged);
