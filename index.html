@@ -345,6 +345,14 @@
   .mglabel{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:700;margin:4px 0 8px;}
   .newgrpbtn{margin-top:14px;width:100%;padding:11px;border-radius:12px;border:1.5px dashed var(--line-strong);background:transparent;font-family:var(--body);font-weight:600;font-size:13.5px;color:var(--ink-soft);cursor:pointer;transition:border-color .12s,color .12s;}
   .newgrpbtn:hover{border-color:var(--azul);color:var(--azul);}
+  .mgsep{height:1px;background:var(--line);margin:16px 0 4px;}
+  .fixobtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:14px;border:1.5px solid var(--ouro);background:rgba(224,162,26,.10);color:var(--ink);cursor:pointer;margin-top:8px;transition:background .14s,transform .1s;}
+  .fixobtn:hover{background:rgba(224,162,26,.18);}
+  .fixobtn:active{transform:translateY(1px);}
+  .fixobtn .fx-ic{font-size:20px;flex:0 0 auto;color:var(--ouro-dark);}
+  .fixobtn .fx-tx{display:flex;flex-direction:column;gap:1px;min-width:0;}
+  .fixobtn .fx-tx b{font-size:14px;font-weight:700;}
+  .fixobtn .fx-tx span{font-size:11.5px;color:var(--ink-soft);line-height:1.4;}
   .colorinput{width:100%;height:46px;padding:3px;border:1.5px solid var(--line-strong);border-radius:12px;background:var(--paper-2);cursor:pointer;}
   /* expandir gráfico */
   .cardexp{float:right;width:27px;height:27px;line-height:1;border-radius:8px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink-soft);font-size:13px;cursor:pointer;margin-top:-3px;transition:background .12s,color .12s,border-color .12s;}
@@ -743,6 +751,9 @@
     <div class="field"><label>Cor do grupo</label><input type="color" id="mgColor" value="#7A4FB0" class="colorinput"></div>
     <button class="savebtn" onclick="createGroup()">Criar e aplicar a este lugar</button>
   </div>
+  <div class="mgsep"></div>
+  <div class="mglabel">É um gasto recorrente?</div>
+  <button class="fixobtn" onclick="makeMerchFixo()"><span class="fx-ic">↻</span><span class="fx-tx"><b>Tornar gasto fixo mensal</b><span>Conta todo mês nos compromissos e projeta pra frente.</span></span></button>
 </div>
 
 <!-- GRÁFICO EXPANDIDO -->
@@ -1368,6 +1379,24 @@ function applyMerchCat(catId){
   toast('✓ '+n+' lançamento'+(n===1?'':'s')+' de '+merchEditName+' → '+cat(catId).nome);
 }
 function closeMerch(){document.getElementById('scrimMerch').classList.remove('show');document.getElementById('sheetMerch').classList.remove('show');document.body.style.overflow='';}
+function makeMerchFixo(){
+  if(!merchEditKey)return;
+  const all=S.gastos.filter(g=>normMerch(g.nota||'')===merchEditKey);
+  if(!all.length){toast('Sem lançamentos avulsos deste lugar');return;}
+  const sorted=all.slice().sort((a,b)=>a.data<b.data?1:(a.data>b.data?-1:0));
+  const recent=sorted[0];
+  const valor=recent.valor;
+  const dia=parseInt(recent.data.slice(8,10),10)||1;
+  const desde=all.map(g=>g.data.slice(0,7)).sort()[0];
+  const byc={};all.forEach(g=>byc[g.categoria]=(byc[g.categoria]||0)+1);
+  const categoria=(S.rules&&S.rules[merchEditKey]&&cat(S.rules[merchEditKey])&&S.rules[merchEditKey])||Object.entries(byc).sort((a,b)=>b[1]-a[1])[0][0];
+  const nome=merchEditName;
+  if(!confirm('Transformar "'+nome+'" em gasto fixo mensal de '+fmt(valor)+'?\n\nOs '+all.length+' lançamento(s) avulso(s) viram um fixo que conta todo mês (a partir de '+monthShort(desde)+'). Os próximos extratos com esse lugar não entram de novo.'))return;
+  S.gastos=S.gastos.filter(g=>normMerch(g.nota||'')!==merchEditKey);
+  S.fixos.push({id:uid(),nome,categoria,valor,dia,desde,ate:null,ts:Date.now().toString()});
+  persist();render();closeMerch();
+  toast('✓ '+nome+' agora é fixo mensal · '+fmt(valor));
+}
 function catDrill(catId,avulsos){
   const items=(avulsos||[]).filter(g=>g.categoria===catId);
   const groups={},solo=[];
@@ -1464,14 +1493,17 @@ function analisarCodigo(){
   const r=parseSOB(txt);
   // aplica regras de estabelecimento salvas (reclassificação automática por padrão)
   r.gastos.forEach(g=>{const k=normMerch(g.nota||'');if(k&&S.rules&&S.rules[k]&&cat(S.rules[k]))g.categoria=S.rules[k];});
+  const _fixoKeys=new Set((S.fixos||[]).map(f=>normMerch(f.nome||'')).filter(Boolean));
+  r.gastos.forEach(g=>{g._isFixo=_fixoKeys.has(normMerch(g.nota||''));});
   r.gastos.forEach(g=>g._dup=isDupGasto(g));
   r.plantoes.forEach(p=>p._dup=isDupPlant(p));
   r.parcelas.forEach(p=>p._dup=isDupParc(p));
   r.fixos.forEach(f=>f._dup=isDupFixo(f));
   parsed=r;
-  const newG=r.gastos.filter(g=>!g._dup),newP=r.plantoes.filter(p=>!p._dup),newC=r.parcelas.filter(p=>!p._dup),newF=r.fixos.filter(f=>!f._dup);
+  const newG=r.gastos.filter(g=>!g._dup&&!g._isFixo),newP=r.plantoes.filter(p=>!p._dup),newC=r.parcelas.filter(p=>!p._dup),newF=r.fixos.filter(f=>!f._dup);
   const totG=newG.reduce((a,g)=>a+g.valor,0),totP=newP.reduce((a,p)=>a+p.valor,0);
-  const dupCount=(r.gastos.length-newG.length)+(r.plantoes.length-newP.length)+(r.parcelas.length-newC.length)+(r.fixos.length-newF.length);
+  const fixoCount=r.gastos.filter(g=>g._isFixo&&!g._dup).length;
+  const dupCount=r.gastos.filter(g=>g._dup).length+(r.plantoes.length-newP.length)+(r.parcelas.length-newC.length)+(r.fixos.length-newF.length);
   const anyParsed=r.gastos.length||r.plantoes.length||r.parcelas.length||r.fixos.length;
   if(!anyParsed){box.innerHTML='<div class="warnbox"><b>Não achei lançamentos válidos.</b>Confere se colou o código que a IA gerou — ele começa com #SOB1.</div>';btn.disabled=true;btn.textContent='Importar';return;}
   let html='<div class="psum">';
@@ -1480,9 +1512,10 @@ function analisarCodigo(){
   html+='<div class="pc in"><div class="pn">'+newP.length+'</div><div class="pl">entradas</div></div></div>';
   r.parcelas.forEach(p=>{const c=cat(p.categoria);html+='<div class="pvitem '+(p._dup?'dup':'')+'"><span class="em">'+c.em+'</span><span class="pm"><span class="a">'+esc(p.desc||c.nome)+'</span><span class="b">'+p.n+'x de '+fmt(p.valorParc)+' · começa '+monthShort(p.inicio)+(p._dup?' · já existe':'')+'</span></span><span class="pv out">'+p.n+'x</span></div>';});
   r.fixos.forEach(f=>{const c=cat(f.categoria);html+='<div class="pvitem '+(f._dup?'dup':'')+'"><span class="em">'+c.em+'</span><span class="pm"><span class="a">'+esc(f.nome||c.nome)+'</span><span class="b">fixo mensal · '+c.nome+(f._dup?' · já existe':'')+'</span></span><span class="pv out">'+fmt(f.valor)+'</span></div>';});
-  r.gastos.forEach(g=>{const c=cat(g.categoria);html+='<div class="pvitem '+(g._dup?'dup':'')+'"><span class="em">'+c.em+'</span><span class="pm"><span class="a">'+(g.nota?esc(g.nota):c.nome)+'</span><span class="b">'+c.nome+' · '+dayLabel(g.data)+(g._dup?' · já existe':'')+'</span></span><span class="pv out">−'+fmt(g.valor)+'</span></div>';});
+  r.gastos.forEach(g=>{const c=cat(g.categoria);const skip=g._dup||g._isFixo;const tag=g._dup?' · já existe':(g._isFixo?' · já é fixo':'');html+='<div class="pvitem '+(skip?'dup':'')+'"><span class="em">'+c.em+'</span><span class="pm"><span class="a">'+(g.nota?esc(g.nota):c.nome)+'</span><span class="b">'+c.nome+' · '+dayLabel(g.data)+tag+'</span></span><span class="pv out">−'+fmt(g.valor)+'</span></div>';});
   r.plantoes.forEach(p=>{html+='<div class="pvitem '+(p._dup?'dup':'')+'"><span class="em">🩺</span><span class="pm"><span class="a">'+(p.local?esc(p.local):'Plantão')+'</span><span class="b">'+dayLabel(p.data)+' · '+p.status+(p._dup?' · já existe':'')+'</span></span><span class="pv in">+'+fmt(p.valor)+'</span></div>';});
   if(dupCount>0)html+='<div class="warnbox"><b>'+dupCount+' já existe(m) e foram ignorados.</b>Pra não duplicar, esses não entram de novo.</div>';
+  if(fixoCount>0)html+='<div class="warnbox"><b>'+fixoCount+' já é gasto fixo cadastrado.</b>Esses não entram de novo — já contam todo mês nos compromissos.</div>';
   if(r.warns.length)html+='<div class="warnbox"><b>Avisos</b>'+r.warns.slice(0,6).map(esc).join('<br>')+'</div>';
   box.innerHTML=html;
   const n=newG.length+newP.length+newC.length+newF.length;
@@ -1490,7 +1523,7 @@ function analisarCodigo(){
 }
 function confirmImport(){
   if(!parsed)return;
-  const newG=parsed.gastos.filter(g=>!g._dup),newP=parsed.plantoes.filter(p=>!p._dup),newC=parsed.parcelas.filter(p=>!p._dup),newF=parsed.fixos.filter(f=>!f._dup);
+  const newG=parsed.gastos.filter(g=>!g._dup&&!g._isFixo),newP=parsed.plantoes.filter(p=>!p._dup),newC=parsed.parcelas.filter(p=>!p._dup),newF=parsed.fixos.filter(f=>!f._dup);
   let lastMonth=null;
   newG.forEach(g=>{S.gastos.push({id:uid(),valor:g.valor,categoria:g.categoria,nota:g.nota,data:g.data,ts:Date.now().toString()});lastMonth=ym(g.data);});
   newP.forEach(p=>{S.plantoes.push({id:uid(),valor:p.valor,local:p.local,status:p.status,data:p.data,ts:Date.now().toString()});lastMonth=ym(p.data);});
