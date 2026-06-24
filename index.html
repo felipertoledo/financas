@@ -467,6 +467,50 @@
     .keypad button{padding:13px 0;font-size:20px;}
     .kbdhint{display:block;}
   }
+  /* seletor de período do PDF */
+  .pdf-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+  .pdf-opts button{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;padding:14px;border-radius:14px;border:1.5px solid var(--line-strong);background:var(--paper-2);cursor:pointer;transition:border-color .14s,transform .1s;}
+  .pdf-opts button:hover{border-color:var(--ouro);}
+  .pdf-opts button:active{transform:translateY(1px);}
+  .pdf-opts button b{font-family:var(--disp);font-size:16px;font-weight:700;}
+  .pdf-opts button span{font-size:11px;color:var(--ink-soft);}
+
+  /* documento do PDF (cores fixas, impressão) */
+  #printArea{display:none;}
+  .pr-doc{font-family:var(--body);color:#1A1714;background:#fff;max-width:720px;margin:0 auto;padding:6px 2px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .pr-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1A1714;padding-bottom:10px;margin-bottom:16px;}
+  .pr-brand{font-family:var(--disp);font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1;}
+  .pr-brand span{display:block;font-family:var(--body);font-weight:600;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:#9A6E08;margin-top:4px;}
+  .pr-gen{font-size:10px;color:#5A5247;text-align:right;}
+  .pr-title{font-family:var(--disp);font-weight:800;font-size:26px;margin:0;letter-spacing:-.02em;}
+  .pr-period{font-size:13px;color:#5A5247;margin:2px 0 18px;}
+  .pr-cards{display:flex;gap:12px;margin-bottom:6px;}
+  .pr-card{flex:1;border:1.5px solid #D8CCB4;border-radius:12px;padding:12px 14px;background:#F8F2E6;}
+  .pr-card span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#5A5247;font-weight:700;margin-bottom:4px;}
+  .pr-card b{font-family:var(--mono);font-weight:700;font-size:19px;}
+  .pr-card b.pos{color:#1F6B4F;}.pr-card b.out{color:#C8462E;}.pr-card b.neg{color:#C8462E;}
+  .pr-note{font-size:10.5px;color:#5A5247;font-style:italic;margin:8px 0 0;}
+  .pr-sec{font-family:var(--disp);font-weight:700;font-size:14px;margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid #D8CCB4;}
+  .pr-tab{width:100%;border-collapse:collapse;font-size:13px;}
+  .pr-tab td{padding:7px 4px;border-bottom:1px solid #EFE7D6;}
+  .pr-tab td.e{width:22px;font-size:15px;}
+  .pr-tab td.v{text-align:right;font-family:var(--mono);font-weight:700;white-space:nowrap;}
+  .pr-tab td.p{text-align:right;font-family:var(--mono);color:#5A5247;width:44px;font-size:11.5px;}
+  .pr-tab td.empty{color:#5A5247;text-align:center;padding:14px;font-style:italic;}
+  .pr-tab .ct{font-family:var(--mono);font-size:10px;color:#5A5247;}
+  .pr-maria{display:flex;gap:12px;align-items:flex-start;background:#F4EAD7;border:1.5px solid #E0A21A;border-radius:12px;padding:14px 16px;margin:22px 0 14px;}
+  .pr-maria .pr-av{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:#C8462E;color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:800;font-size:16px;}
+  .pr-mhead{font-weight:700;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:#C8462E;margin-bottom:3px;}
+  .pr-mtxt{font-size:13px;line-height:1.5;}
+  .pr-foot{font-size:9.5px;color:#9A8F78;text-align:center;border-top:1px solid #D8CCB4;padding-top:10px;margin-top:18px;}
+
+  @media print{
+    .app,nav.tabs,.fab,.scrim,.sheet,#loginOverlay{display:none !important;}
+    #printArea{display:block !important;}
+    html,body{background:#fff !important;}
+    body{overflow:visible !important;}
+    @page{margin:14mm 12mm;}
+  }
 </style>
 <script>try{var _s=JSON.parse(localStorage.getItem('soberania_v1'));if(_s&&_s.config&&_s.config.theme==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
 </head>
@@ -741,6 +785,7 @@
   <div class="setrow" id="signoutRow" style="display:none;"><div class="si"><b>Conta conectada</b><span id="syncWho">—</span></div><button class="setbtn danger" onclick="SOBLogout()">Sair</button></div>
   <div class="setrow"><div class="si"><b>Salário base do mês</b><span>Quanto você se "paga" de média. Vira a base da projeção quando não tem plantão lançado.</span></div><button class="setbtn" onclick="setSalario()" id="salBtn">Definir</button></div>
   <div class="setrow"><div class="si"><b>Aparência</b><span>Alterna entre tema claro e escuro.</span></div><button class="setbtn" onclick="toggleTheme()"><span class="themeword">Modo escuro</span></button></div>
+  <div class="setrow"><div class="si"><b>Resumo em PDF</b><span>Dia, semana, mês ou ano — com a voz da Maria.</span></div><button class="setbtn" onclick="openPdf()">Gerar</button></div>
   <div class="setrow"><div class="si"><b>Baixar backup</b><span>Salva um .json com tudo.</span></div><button class="setbtn" onclick="exportData()">Baixar</button></div>
   <div class="setrow"><div class="si"><b>Restaurar backup</b><span>Carrega um .json salvo antes.</span></div><button class="setbtn" onclick="document.getElementById('importFile').click()">Carregar</button></div>
   <div class="setrow"><div class="si"><b>Apagar duplicados</b><span>Acha lançamentos repetidos (mesma data, valor e descrição) e deixa só um de cada.</span></div><button class="setbtn" onclick="dedupe()">Limpar</button></div>
@@ -810,6 +855,23 @@
     <button class="savebtn ghost" id="budgetDel" onclick="removeBudget()" style="display:none;">Remover limite</button>
   </div>
 </div>
+
+<!-- RESUMO EM PDF -->
+<div class="scrim" id="scrimPdf" onclick="closePdf()"></div>
+<div class="sheet" id="sheetPdf" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div class="shead"><h3>Resumo em PDF</h3><button class="closeb" onclick="closePdf()">Fechar ✕</button></div>
+  <p class="merchsub">Escolha o período. Vai abrir a tela de impressão do navegador — escolha <b>“Salvar como PDF”</b> (ou compartilhar). A Maria assina o resumo.</p>
+  <div class="pdf-opts">
+    <button onclick="genPdf('dia')"><b>Hoje</b><span>o dia de hoje</span></button>
+    <button onclick="genPdf('semana')"><b>Semana</b><span>últimos 7 dias</span></button>
+    <button onclick="genPdf('mes')"><b>Mês</b><span id="pdfMesLbl">este mês</span></button>
+    <button onclick="genPdf('ano')"><b>Ano</b><span id="pdfAnoLbl">o ano todo</span></button>
+  </div>
+</div>
+
+<!-- ÁREA DE IMPRESSÃO (PDF) -->
+<div id="printArea"></div>
 
 <!-- LOGIN / SINCRONIZAÇÃO -->
 <div class="scrim" id="loginOverlay" style="display:none;opacity:1;pointer-events:auto;backdrop-filter:none;background:radial-gradient(120% 60% at 50% -10%, rgba(224,162,26,.12), transparent 60%),var(--paper);align-items:center;justify-content:center;padding:24px;z-index:200;">
@@ -1274,6 +1336,60 @@ function saveBudget(){
 function removeBudget(){if(!budgetCatId)return;S.budgets=S.budgets||{};delete S.budgets[budgetCatId];persist();render();closeBudget();toast('Limite removido');}
 function closeBudget(){document.getElementById('scrimBudget').classList.remove('show');document.getElementById('sheetBudget').classList.remove('show');document.body.style.overflow='';}
 
+/* ===== RESUMO EM PDF (impressão nativa) ===== */
+function longDate(iso){const[y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});}
+function _inRange(iso,a,b){return iso>=a&&iso<=b;}
+function reportData(kind){
+  const td=new Date();const t=td.getFullYear()+'-'+String(td.getMonth()+1).padStart(2,'0')+'-'+String(td.getDate()).padStart(2,'0');
+  let start,end,title,periodo;
+  if(kind==='dia'){start=end=t;title='Resumo do dia';periodo=longDate(t);}
+  else if(kind==='semana'){const s=new Date(td);s.setDate(s.getDate()-6);start=s.getFullYear()+'-'+String(s.getMonth()+1).padStart(2,'0')+'-'+String(s.getDate()).padStart(2,'0');end=t;title='Resumo da semana';periodo=longDate(start)+' — '+longDate(end);}
+  else if(kind==='mes'){start=view.month+'-01';const[yy,mm]=view.month.split('-').map(Number);const last=new Date(yy,mm,0).getDate();end=view.month+'-'+String(last).padStart(2,'0');title='Resumo do mês';periodo=monthLabel(view.month);}
+  else{const y=view.month.slice(0,4);start=y+'-01-01';end=y+'-12-31';title='Resumo do ano';periodo='Ano de '+y;}
+  let entradas=0,gastos=0,sobra=null,comprometido=0,estimada=false;const byc={};
+  if(kind==='mes'){const d=monthData(view.month);entradas=d.entradaEsp;gastos=d.custoTotal;sobra=d.sobraProj;comprometido=d.comprometido;estimada=d.estimada;d.catList.forEach(c=>byc[c.id]=c.value);}
+  else if(kind==='ano'){const y=view.month.slice(0,4);for(let mo=1;mo<=12;mo++){const m=y+'-'+String(mo).padStart(2,'0');const d=monthData(m);entradas+=d.entradaEsp;gastos+=d.custoTotal;d.catList.forEach(c=>byc[c.id]=(byc[c.id]||0)+c.value);}sobra=entradas-gastos;}
+  else{entradas=S.plantoes.filter(p=>p.status==='recebido'&&_inRange(p.data,start,end)).reduce((a,p)=>a+p.valor,0);S.gastos.filter(g=>_inRange(g.data,start,end)).forEach(g=>{gastos+=g.valor;byc[g.categoria]=(byc[g.categoria]||0)+g.valor;});sobra=entradas-gastos;}
+  const cats=Object.entries(byc).map(([id,v])=>({id,v})).sort((a,b)=>b.v-a.v);
+  const lugSrc=kind==='ano'?S.gastos.filter(g=>g.data.slice(0,4)===view.month.slice(0,4)):(kind==='mes'?S.gastos.filter(g=>ym(g.data)===view.month):S.gastos.filter(g=>_inRange(g.data,start,end)));
+  const bm={};lugSrc.forEach(g=>{if(g.nota&&g.nota.trim()){const k=normMerch(g.nota);(bm[k]=bm[k]||{nome:(g.nota||'').replace(/\s*\(\d+\)\s*$/,'').trim(),t:0,n:0});bm[k].t+=g.valor;bm[k].n++;}});
+  const lugares=Object.values(bm).sort((a,b)=>b.t-a.t).slice(0,6);
+  return {kind,title,periodo,start,end,entradas,gastos,sobra,comprometido,estimada,cats,lugares,nLanc:lugSrc.length};
+}
+function reportMaria(kind,R){
+  if(R.gastos===0&&R.entradas===0)return 'Período sem movimento. Às vezes o silêncio também é dado: nada entrou, nada saiu — e tudo bem.';
+  if(R.sobra!=null&&R.sobra<0)return 'No período, saiu '+fmt(-R.sobra)+' a mais do que entrou. Não é fracasso, é informação. O próximo passo é decidir de onde tirar — com consciência, não com culpa.';
+  const top=R.cats[0];const pct=R.gastos>0&&top?Math.round(top.v/R.gastos*100):0;
+  let base=top?(cat(top.id).nome+' liderou os gastos: '+fmt(top.v)+(pct?' ('+pct+'% do que saiu)':'')+'. '):'';
+  const tail=kind==='dia'?'Um dia consciente vira um mês inteiro no controle.':kind==='semana'?'Sete dias de consciência são o tijolo da sua soberania.':kind==='mes'?'Cada real que sobra é um "não" que você pode dar mais pra frente.':'Um ano inteiro à vista. Quem enxerga o todo escolhe melhor o detalhe.';
+  return base+tail;
+}
+function buildReport(kind){
+  const R=reportData(kind);
+  const netLbl=(kind==='mes')?'Sobra projetada':(kind==='ano'?'Saldo do ano':'Saldo do período');
+  const outLbl=(kind==='mes'||kind==='ano')?'Custo':'Saiu';
+  const catRows=R.cats.length?R.cats.map(c=>`<tr><td class="e">${cat(c.id).em}</td><td>${cat(c.id).nome}</td><td class="v">${fmt(c.v)}</td><td class="p">${R.gastos>0?Math.round(c.v/R.gastos*100):0}%</td></tr>`).join(''):'<tr><td colspan="4" class="empty">Sem gastos registrados no período.</td></tr>';
+  const lugBlock=R.lugares.length?`<div class="pr-sec">Onde mais pesou</div><table class="pr-tab lug">${R.lugares.map(l=>`<tr><td>${esc(l.nome)}${l.n>1?' <span class="ct">'+l.n+'×</span>':''}</td><td class="v">${fmt(l.t)}</td></tr>`).join('')}</table>`:'';
+  document.getElementById('printArea').innerHTML=`<div class="pr-doc">
+    <div class="pr-head"><div class="pr-brand">SOBERANIA<span>educar p/ revolucionar</span></div><div class="pr-gen">gerado em ${longDate(todayISO())}</div></div>
+    <div class="pr-title">${R.title}</div><div class="pr-period">${R.periodo}</div>
+    <div class="pr-cards">
+      <div class="pr-card"><span>Entrou</span><b class="pos">${fmt(R.entradas)}${R.estimada?' *':''}</b></div>
+      <div class="pr-card"><span>${outLbl}</span><b class="out">${fmt(R.gastos)}</b></div>
+      <div class="pr-card"><span>${netLbl}</span><b class="${R.sobra<0?'neg':'pos'}">${fmt(R.sobra)}</b></div>
+    </div>
+    ${R.estimada?'<div class="pr-note">* entrada estimada pela média dos últimos meses (renda de plantão é irregular)</div>':''}
+    <div class="pr-sec">Por onde foi o dinheiro</div>
+    <table class="pr-tab">${catRows}</table>
+    ${lugBlock}
+    <div class="pr-maria"><div class="pr-av">M</div><div><div class="pr-mhead">Maria diz</div><div class="pr-mtxt">${reportMaria(kind,R)}</div></div></div>
+    <div class="pr-foot">SOBERANIA · finanças com consciência · ${R.nLanc} lançamento(s) no período · soberania não é ter muito, é saber para onde vai</div>
+  </div>`;
+}
+function genPdf(kind){buildReport(kind);closePdf();setTimeout(function(){window.print();},150);}
+function openPdf(){closeAllModals();document.getElementById('pdfMesLbl').textContent=monthLabel(view.month);document.getElementById('pdfAnoLbl').textContent='ano de '+view.month.slice(0,4);document.getElementById('scrimPdf').classList.add('show');document.getElementById('sheetPdf').classList.add('show');document.body.style.overflow='hidden';}
+function closePdf(){document.getElementById('scrimPdf').classList.remove('show');document.getElementById('sheetPdf').classList.remove('show');document.body.style.overflow='';}
+
 /* ===== MARIA CONTEXTUAL (a alma) ===== */
 function mariaContextLine(d){
   const B=S.budgets||{};const spent={};d.catList.forEach(c=>spent[c.id]=c.value);
@@ -1340,7 +1456,7 @@ function setType(t,reset){
   }
   renderChips();renderQuickLocs();updateAmount();
 }
-function closeAllModals(){['scrim','scrim2','scrim3','scrimMerch','scrimChart','scrimBudget','sheet','sheet2','sheet3','sheetMerch','sheetChart','sheetBudget'].forEach(id=>{var el=document.getElementById(id);if(el)el.classList.remove('show');});}
+function closeAllModals(){['scrim','scrim2','scrim3','scrimMerch','scrimChart','scrimBudget','scrimPdf','sheet','sheet2','sheet3','sheetMerch','sheetChart','sheetBudget','sheetPdf'].forEach(id=>{var el=document.getElementById(id);if(el)el.classList.remove('show');});}
 function showSheet(){closeAllModals();document.getElementById('scrim').classList.add('show');document.getElementById('sheet').classList.add('show');document.body.style.overflow='hidden';document.getElementById('sheet').scrollTop=0;}
 function closeSheet(){document.getElementById('scrim').classList.remove('show');document.getElementById('sheet').classList.remove('show');document.body.style.overflow='';}
 
