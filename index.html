@@ -400,6 +400,18 @@
   .subs-btn.fix{border-color:var(--verde);color:var(--verde);background:rgba(31,107,79,.07);}
   .subs-btn.fix:hover{background:rgba(31,107,79,.15);}
   .subs-btn.ign:hover{border-color:var(--tijolo);color:var(--tijolo);}
+  /* heatmap de calendário */
+  .cal-insight{font-size:12.5px;line-height:1.5;color:var(--ink-soft);margin-bottom:12px;}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:560px;}
+  .cal-wd{text-align:center;font-size:10px;font-weight:700;color:var(--ink-soft);padding-bottom:2px;text-transform:uppercase;letter-spacing:.03em;}
+  .cal-cell{position:relative;aspect-ratio:1/1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--line);overflow:hidden;}
+  .cal-cell.empty{border:0;background:transparent;}
+  .cal-cell.fut{opacity:.5;}
+  .cal-d{font-size:11px;font-weight:700;line-height:1;}
+  .cal-amt{display:none;font-family:var(--mono);font-size:8.5px;margin-top:2px;line-height:1;}
+  .cal-leg{display:flex;align-items:center;gap:4px;margin-top:12px;font-size:10px;color:var(--ink-soft);}
+  .cal-leg i{width:18px;height:12px;border-radius:3px;display:inline-block;border:1px solid var(--line);}
+  @media (min-width:1024px){.cal-amt{display:block;}.cal{max-width:600px;}}
   /* editor de estabelecimento / grupo */
   .merchsub{font-size:13px;color:var(--ink-soft);line-height:1.55;margin:2px 0 14px;}
   .mglabel{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:700;margin:4px 0 8px;}
@@ -480,7 +492,7 @@
     /* ANÁLISE: grade de 2 colunas */
     #v-analise{max-width:1040px;margin:0 auto;}
     #v-analise.active{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start;}
-    #v-analise .sechead,#cardDonut,#cardSankey,#cardProj,#cardSubs{grid-column:1 / -1;}
+    #v-analise .sechead,#cardDonut,#cardSankey,#cardProj,#cardSubs,#cardHeat{grid-column:1 / -1;}
     #v-analise .chartcard{margin-bottom:0;}
 
     /* FAB sai (a sidebar tem as ações) */
@@ -637,6 +649,11 @@
       <div class="ch-sub">saldo do mês — cheio até hoje, tracejado é projeção até o fim</div>
       <div id="projChart"></div>
       <div class="proj-foot" id="projFoot"></div>
+    </div>
+    <div class="chartcard" id="cardHeat">
+      <h3>Teus dias de gasto</h3>
+      <div class="ch-sub">cada dia colorido pelo quanto saiu — quanto mais forte, mais gasto (avulsos)</div>
+      <div id="heatBody"></div>
     </div>
     <div class="chartcard" id="cardBudget">
       <h3>Orçamento do mês</h3>
@@ -1118,6 +1135,7 @@ function render(){
   renderAnalise();
   renderBudgets(d);
   renderSubs();
+  renderHeatmap(d);
 
   document.getElementById('gTotal').textContent=d.avulsos.length?fmt(d.sAvulso)+' • '+d.avulsos.length+' lançamentos':'';
   const ps=S.plantoes.filter(p=>ym(p.data)===view.month);const ptot=ps.reduce((a,p)=>a+p.valor,0);
@@ -1589,6 +1607,43 @@ function deleteSink(){if(!sinkId)return;if(!confirm('Excluir esta provisão? O v
 function closeSink(){document.getElementById('scrimSink').classList.remove('show');document.getElementById('sheetSink').classList.remove('show');document.body.style.overflow='';}
 
 /* ===== PROJEÇÃO DO SALDO DO MÊS ===== */
+function renderHeatmap(d){
+  const wrap=document.getElementById('heatBody');if(!wrap)return;
+  const m=view.month,a=m.split('-').map(Number),y=a[0],mo=a[1];
+  const lastDay=new Date(y,mo,0).getDate();
+  const firstDow=new Date(y,mo-1,1).getDay();
+  const cur=todayISO(),isCur=(ym(cur)===m);
+  const today=isCur?parseInt(cur.slice(8,10),10):lastDay;
+  const byDay={};let maxDay=0;
+  d.avulsos.forEach(g=>{const dd=parseInt(g.data.slice(8,10),10);byDay[dd]=(byDay[dd]||0)+g.valor;});
+  Object.values(byDay).forEach(v=>{if(v>maxDay)maxDay=v;});
+  if(maxDay<=0){wrap.innerHTML='<div class="chempty">Sem gastos avulsos em '+monthShort(m)+' ainda. Cada dia ganha cor quando você lança um gasto — quanto mais forte, mais gasto naquele dia.</div>';return;}
+  const WD=['D','S','T','Q','Q','S','S'];
+  let cells=WD.map(w=>'<div class="cal-wd">'+w+'</div>').join('');
+  for(let i=0;i<firstDow;i++)cells+='<div class="cal-cell empty"></div>';
+  for(let dd=1;dd<=lastDay;dd++){
+    const v=byDay[dd]||0;
+    const ratio=v/maxDay;
+    const alpha=v>0?(0.16+0.84*Math.sqrt(ratio)):0;
+    const future=isCur&&dd>today;
+    const bg=v>0?'rgba(200,70,46,'+alpha.toFixed(2)+')':'var(--paper-2)';
+    const txt=alpha>0.55?'#fff':'var(--ink)';
+    cells+='<div class="cal-cell'+(future?' fut':'')+'" style="background:'+bg+';color:'+txt+'" title="dia '+dd+': '+fmt(v)+'"><span class="cal-d">'+dd+'</span>'+(v>0?'<span class="cal-amt">'+fmtShort(v)+'</span>':'')+'</div>';
+  }
+  const legend='<div class="cal-leg"><span>menos</span><i style="background:rgba(200,70,46,.18)"></i><i style="background:rgba(200,70,46,.45)"></i><i style="background:rgba(200,70,46,.72)"></i><i style="background:rgba(200,70,46,1)"></i><span>mais</span></div>';
+  let bigDay=0,bigVal=0;Object.keys(byDay).forEach(k=>{if(byDay[k]>bigVal){bigVal=byDay[k];bigDay=+k;}});
+  const limit=isCur?today:lastDay;
+  const dowSum=[0,0,0,0,0,0,0],dowCnt=[0,0,0,0,0,0,0];
+  for(let dd=1;dd<=limit;dd++){const w=new Date(y,mo-1,dd).getDay();dowSum[w]+=(byDay[dd]||0);dowCnt[w]++;}
+  const wkndAvg=(dowSum[0]+dowSum[6])/Math.max(1,dowCnt[0]+dowCnt[6]);
+  const wdAvg=(dowSum[1]+dowSum[2]+dowSum[3]+dowSum[4]+dowSum[5])/Math.max(1,dowCnt[1]+dowCnt[2]+dowCnt[3]+dowCnt[4]+dowCnt[5]);
+  const DN=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+  let ins='Seu dia mais pesado foi <b>dia '+bigDay+'</b> — '+fmt(bigVal)+'. ';
+  if(wkndAvg>wdAvg*1.3&&wkndAvg>0)ins+='No geral, <b>fim de semana</b> pesa mais no bolso: ~'+fmt(wkndAvg)+'/dia contra ~'+fmt(wdAvg)+'/dia nos dias úteis.';
+  else if(wdAvg>wkndAvg*1.3&&wdAvg>0)ins+='Aqui os <b>dias úteis</b> gastam mais que o fim de semana (~'+fmt(wdAvg)+'/dia contra ~'+fmt(wkndAvg)+'/dia).';
+  else{let td=-1,ta=0;for(let i=0;i<7;i++){if(dowCnt[i]>0){const av=dowSum[i]/dowCnt[i];if(av>ta){ta=av;td=i;}}}if(td>=0&&ta>0)ins+='Teu dia da semana mais caro costuma ser <b>'+DN[td]+'</b> (~'+fmt(ta)+'/dia em média).';}
+  wrap.innerHTML='<div class="cal-insight">'+ins+'</div><div class="cal">'+cells+'</div>'+legend;
+}
 function balProjection(m){
   const a=m.split('-').map(Number),Y=a[0],MO=a[1];
   const lastDay=new Date(Y,MO,0).getDate();
